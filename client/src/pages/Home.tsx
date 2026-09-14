@@ -30,30 +30,51 @@ import {
 const projects = [
   {
     title: "Base Loading Page",
+    year: "2024",
     description: "Fondasi landing page performa tinggi dengan state loading, progressive reveal, dan micro-interactions.",
     language: "JavaScript",
     color: "#f7df1e",
     stars: 3,
     href: "https://github.com/JohnIsDimz/Base-Loading-Page",
     featured: true,
+    role: "Product engineer / frontend",
+    stack: ["JavaScript", "CSS architecture", "Web animation API"],
+    challenge: "Landing page sering terasa lambat sebelum konten utama siap. Tantangannya adalah memberi feedback yang jelas tanpa membuat pengguna menunggu dalam keadaan pasif.",
+    approach: "Mendesain loading sequence yang progresif: skeleton yang ringan, progressive reveal, dan micro-interactions yang merespons status aktual halaman. Struktur CSS dibuat modular agar mudah diadopsi ke halaman lain.",
+    outcome: "Fondasi landing page reusable dengan transisi yang terasa cepat, status yang mudah dipahami, dan pola loading yang dapat dipakai lintas proyek.",
+    highlights: ["Progressive reveal tanpa library berat", "State loading yang dapat dikomposisi", "Animasi tetap menghormati reduced motion"],
   },
   {
     title: "jooexe-portfolio",
+    year: "2026",
     description: "Portfolio personal dengan data live, visual dark neon, dan komponen frontend yang mudah dikembangkan.",
     language: "TypeScript",
     color: "#3178c6",
     stars: 2,
     href: "https://github.com/JohnIsDimz",
     featured: true,
+    role: "Design engineer / solo builder",
+    stack: ["React", "TypeScript", "Vite", "Responsive CSS"],
+    challenge: "Menyatukan portfolio, proof of work, dan eksperimen developer dalam satu pengalaman yang terasa personal—bukan sekadar daftar link.",
+    approach: "Menggunakan editorial dark system dengan aksen cyan, grid modular, data cards, dan hierarchy yang jelas. Setiap section dirancang sebagai titik masuk berbeda: profile, live signals, karya, toolkit, lalu contact.",
+    outcome: "Portfolio yang cepat dipindai, responsif di mobile, dan cukup fleksibel untuk menampung karya baru tanpa kehilangan identitas visual.",
+    highlights: ["Design system dark editorial yang konsisten", "Responsive layout dari 390px sampai desktop", "Interactive live dashboard dan quick tools"],
   },
   {
     title: "API Playground",
+    year: "2023",
     description: "Kumpulan eksperimen REST API, integrasi fetch, dan utility kecil untuk workflow developer sehari-hari.",
     language: "Node.js",
     color: "#67c52a",
     stars: 1,
     href: "https://github.com/JohnIsDimz",
     featured: false,
+    role: "Backend-minded frontend engineer",
+    stack: ["Node.js", "REST API", "Fetch", "Redis / SQL"],
+    challenge: "Eksperimen API mudah menjadi kumpulan snippet yang terpisah. Dibutuhkan cara untuk menguji endpoint dan memahami response tanpa friction tambahan.",
+    approach: "Menyusun endpoint berdasarkan intent, menambahkan response states yang eksplisit, dan membuat utility kecil yang bisa dipakai ulang untuk debugging, conversion, serta observability ringan.",
+    outcome: "Workflow eksplorasi API yang lebih cepat dan kumpulan pola integrasi yang siap dibawa ke produk nyata.",
+    highlights: ["Endpoint dengan error state yang jelas", "Utility fetch yang mudah diuji", "Pola response untuk data live"],
   },
 ];
 
@@ -98,6 +119,7 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backToTop, setBackToTop] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatTime(new Date())), 1000);
@@ -209,7 +231,7 @@ export default function Home() {
               <div className="section-heading-row"><h2>Di balik <span className="accent-text">kode</span>.</h2><span className="heading-note">A LITTLE ABOUT ME</span></div>
               <div className="about-grid">
                 <div className="portrait-panel">
-                  <div className="portrait-art"><div className="portrait-ring ring-a" /><div className="portrait-ring ring-b" /><div className="portrait-symbol">J<span>×</span>E</div><div className="portrait-caption">BUILD / BREAK / REPEAT</div></div>
+                  <div className="portrait-art"><img className="profile-photo" src="https://github.com/JohnIsDimz.png" alt="Foto profil John Is Dimz" onError={(event) => { event.currentTarget.style.display = "none"; }} /><div className="portrait-overlay" /><div className="portrait-ring ring-a" /><div className="portrait-ring ring-b" /><div className="portrait-symbol">J<span>×</span>E</div><div className="portrait-caption">BUILD / BREAK / REPEAT</div></div>
                   <div className="portrait-footer"><span>JOHN IS DIMZ</span><span>EST. 2020</span></div>
                 </div>
                 <div className="about-text">
@@ -242,7 +264,8 @@ export default function Home() {
             <div className="section-kicker"><span>03</span><span className="kicker-line" /><span>SELECTED WORK</span></div>
             <div className="section-heading-row"><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
             <div className="project-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Semua karya <span>03</span></button><button className={filter === "featured" ? "active" : ""} onClick={() => setFilter("featured")}>Pilihan <span>02</span></button></div>
-            <div className="projects-grid">{visibleProjects.map((project, index) => <a className={`project-card ${index === 0 ? "project-featured" : ""}`} href={project.href} target="_blank" rel="noreferrer" key={project.title}><div className="project-top"><span className="project-index">0{index + 1}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></a>)}</div>
+            <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">0{index + 1}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div>
+            {selectedProject && <div className="case-study-backdrop" role="presentation" onClick={() => setSelectedProject(null)}><article className="case-study-modal" role="dialog" aria-modal="true" aria-labelledby="case-study-title" onClick={(event) => event.stopPropagation()}><button className="case-study-close" onClick={() => setSelectedProject(null)} aria-label="Tutup studi kasus"><X size={18} /></button><div className="case-study-eyebrow">CASE STUDY / {selectedProject.year}</div><div className="case-study-heading"><div><h3 id="case-study-title">{selectedProject.title}</h3><p>{selectedProject.role}</p></div><a href={selectedProject.href} target="_blank" rel="noreferrer">Buka repository <ExternalLink size={14} /></a></div><div className="case-study-tags">{selectedProject.stack.map((item) => <span key={item}>{item}</span>)}</div><div className="case-study-body"><div><span className="case-study-label">01 / Tantangan</span><p>{selectedProject.challenge}</p></div><div><span className="case-study-label">02 / Pendekatan</span><p>{selectedProject.approach}</p></div><div><span className="case-study-label">03 / Hasil</span><p>{selectedProject.outcome}</p></div></div><div className="case-study-highlights"><span>HIGHLIGHTS</span>{selectedProject.highlights.map((highlight) => <div key={highlight}><Check size={14} /> {highlight}</div>)}</div></article></div>}
           </div>
         </section>
 
