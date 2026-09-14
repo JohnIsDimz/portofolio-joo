@@ -21,7 +21,6 @@ import {
   Search,
   Send,
   Server,
-  Sparkles,
   Terminal,
   Twitter,
   X,
@@ -82,12 +81,20 @@ const projects = [
 const skills = [
   ["JavaScript", 100],
   ["TypeScript", 98],
+  ["Python", 88],
+  ["Java", 78],
+  ["C#", 76],
+  ["C / C++", 72],
+  ["Go", 74],
+  ["Rust", 68],
+  ["PHP", 80],
+  ["Kotlin", 70],
+  ["Swift", 66],
+  ["SQL", 86],
   ["HTML5 & CSS3", 100],
   ["Node.js & Express", 94],
   ["REST API & Fetch", 92],
   ["Git & GitHub", 96],
-  ["Python", 88],
-  ["Redis / SQL", 82],
 ];
 
 const cryptoData = [
@@ -148,7 +155,6 @@ export default function Home() {
   const [filter, setFilter] = useState<"all" | "featured">("all");
   const [projectQuery, setProjectQuery] = useState("");
   const [languageFilter, setLanguageFilter] = useState("all");
-  const [converter, setConverter] = useState("100");
   const [refreshing, setRefreshing] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backToTop, setBackToTop] = useState(false);
@@ -403,7 +409,7 @@ export default function Home() {
         </section>
 
         <section className="section tools-section" id="api-tools">
-          <div className="page-width tools-layout"><div className="section-kicker"><span>05</span><span className="kicker-line" /><span>PLAYGROUND</span></div><div className="tools-content"><div className="section-heading-row"><h2>Useful <span className="accent-text">little things</span>.</h2><span className="heading-note">BUILT FOR FUN, KEPT FOR LATER</span></div><div className="tools-grid"><div className="tool-card"><div className="tool-card-head"><Terminal size={17} /><span>API ENDPOINTS</span></div><p>Eksplorasi endpoint publik yang digunakan portfolio ini.</p>{["/api/live", "/api/live/github", "/api/live/crypto"].map((endpoint) => <div className="endpoint-row" key={endpoint}><code>{endpoint}</code><button onClick={() => copyEndpoint(endpoint)} aria-label={`Copy ${endpoint}`}>{copied === endpoint ? <Check size={14} /> : <Copy size={14} />}</button></div>)}</div><div className="tool-card converter-card"><div className="tool-card-head"><Sparkles size={17} /><span>QUICK CONVERTER</span></div><p>Konversi cepat IDR ke USD — rate indikatif live.</p><div className="converter-input"><span>Rp</span><input value={converter} onChange={(event) => setConverter(event.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" /><span className="equals">=</span><strong>${(Number(converter || 0) / 15_850).toFixed(2)}</strong></div><div className="converter-foot">1 USD = Rp15.850 <span>updated just now</span></div></div></div></div></div>
+          <div className="page-width tools-layout"><div className="section-kicker"><span>05</span><span className="kicker-line" /><span>PLAYGROUND</span></div><div className="tools-content"><div className="section-heading-row"><h2>Useful <span className="accent-text">little things</span>.</h2><span className="heading-note">BUILT FOR FUN, KEPT FOR LATER</span></div><div className="tools-grid"><div className="tool-card"><div className="tool-card-head"><Terminal size={17} /><span>API ENDPOINTS</span></div><p>Eksplorasi endpoint publik yang digunakan portfolio ini.</p>{["/api/live", "/api/live/github", "/api/live/crypto"].map((endpoint) => <div className="endpoint-row" key={endpoint}><code>{endpoint}</code><button onClick={() => copyEndpoint(endpoint)} aria-label={`Copy ${endpoint}`}>{copied === endpoint ? <Check size={14} /> : <Copy size={14} />}</button></div>)}</div></div></div></div>
         </section>
 
         <section className="section contact-section" id="contact"><div className="contact-grid" /><div className="page-width contact-inner"><div className="section-kicker"><span>06</span><span className="kicker-line" /><span>LET'S CONNECT</span></div><h2>Do you have an<br /><span>interesting idea?</span></h2><p>Kalau iya, saya ingin mendengarnya. Kirim pesan — biasanya saya membalas dalam 1–2 hari kerja.</p><a className="button button-primary contact-button" href="mailto:johnisdimz@gmail.com">Mulai percakapan <Send size={16} /></a><div className="social-links"><a href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer"><Github size={16} /> GitHub</a><a href="mailto:johnisdimz@gmail.com"><Mail size={16} /> Email</a><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a><a href="https://twitter.com" target="_blank" rel="noreferrer"><Twitter size={16} /> Twitter</a></div></div></section>

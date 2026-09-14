@@ -150,3 +150,5 @@ h1 em { color: var(--cyan); font-style: normal; }
 .crypto-heading > span:last-child { white-space:nowrap; font-size:8px; }
 
 .market-unavailable { color:var(--muted); }
+
+.tools-grid { grid-template-columns: minmax(0, 1fr); }
