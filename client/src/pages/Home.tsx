@@ -91,9 +91,9 @@ const skills = [
 ];
 
 const cryptoData = [
-  { id: "bitcoin", symbol: "BTC", name: "Bitcoin", price: 64820, change: 2.48, icon: "₿" },
-  { id: "ethereum", symbol: "ETH", name: "Ethereum", price: 2486, change: 1.21, icon: "Ξ" },
-  { id: "solana", symbol: "SOL", name: "Solana", price: 148.32, change: -0.64, icon: "S" },
+  { id: "bitcoin", symbol: "BTC", name: "Bitcoin", price: null, change: null, icon: "₿" },
+  { id: "ethereum", symbol: "ETH", name: "Ethereum", price: null, change: null, icon: "Ξ" },
+  { id: "solana", symbol: "SOL", name: "Solana", price: null, change: null, icon: "S" },
 ];
 type MarketCoin = (typeof cryptoData)[number];
 const formatUsd = (value: number) => `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: value < 10 ? 4 : 2 }).format(value)}`;
@@ -158,7 +158,7 @@ export default function Home() {
   const [githubState, setGithubState] = useState<"loading" | "live" | "fallback">("loading");
   const [githubSync, setGithubSync] = useState("menunggu sinkronisasi");
   const [marketData, setMarketData] = useState<MarketCoin[]>(cryptoData);
-  const [marketState, setMarketState] = useState<"loading" | "live" | "fallback">("loading");
+  const [marketState, setMarketState] = useState<"loading" | "live" | "unavailable">("loading");
   const [marketSync, setMarketSync] = useState("menunggu sinkronisasi");
 
   const syncGithub = async (signal?: AbortSignal) => {
@@ -187,13 +187,14 @@ export default function Home() {
       const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true", { signal, headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("CoinGecko unavailable");
       const payload = await response.json();
-      setMarketData(cryptoData.map((coin) => ({ ...coin, price: payload[coin.id]?.usd ?? coin.price, change: payload[coin.id]?.usd_24h_change ?? coin.change })));
+      setMarketData(cryptoData.map((coin) => ({ ...coin, price: payload[coin.id]?.usd ?? null, change: payload[coin.id]?.usd_24h_change ?? null })));
       setMarketState("live");
       setMarketSync(`sync ${formatTime(new Date())} WIB`);
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
-        setMarketState("fallback");
-        setMarketSync("fallback snapshot");
+        setMarketData(cryptoData);
+        setMarketState("unavailable");
+        setMarketSync("data unavailable");
       }
     }
   };
@@ -320,8 +321,8 @@ export default function Home() {
             <div className="hero-copy">
               <div className="eyebrow"><span className="eyebrow-line" /> FRONTEND DEVELOPER <span className="eyebrow-code">[001]</span></div>
               <h1>
-                Membangun <span className="outline-word">digital</span>
-                <br />yang terasa <em>hidup.</em>
+                Membangun <span className="outline-word">Digital</span>
+                <br />untuk <em>menuju masa depan.</em>
               </h1>
               <p className="hero-lead">Saya <strong>John Is Dimz</strong> — developer yang mengubah ide kompleks menjadi produk web yang cepat, jelas, dan punya karakter.</p>
               <div className="hero-actions">
@@ -378,8 +379,8 @@ export default function Home() {
               <div className="metric-card data-card"><div className="card-label"><Layers3 size={14} /> OPEN SOURCE</div><div className="metric-value">{githubProfile.publicRepos}</div><div className="metric-foot"><span>repositories</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "live" ? "● active" : "● cached"}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><HeartPulse size={14} /> SYSTEM STATUS</div><div className="metric-value status-value"><span className="status-pulse" /> 99.9%</div><div className="metric-foot"><span>all systems normal</span><span>past 30 days</span></div></div>
             </div>
-            <div className="crypto-heading"><span>MARKET SNAPSHOT</span><span className="crypto-heading-line" /><span>COINGECKO · {marketState === "live" ? "LIVE" : marketState === "loading" ? "SYNCING" : "FALLBACK"} · {marketSync}</span></div>
-            <div className="crypto-grid">{marketData.map((coin) => <div className="crypto-card" key={coin.symbol}><div className="coin-icon">{coin.icon}</div><div><strong>{coin.symbol}</strong><span>{coin.name}</span></div><div className="coin-price">{formatUsd(coin.price)}<small className={coin.change >= 0 ? "positive" : "negative"}>{formatChange(coin.change)} · 24h</small></div></div>)}</div>
+            <div className="crypto-heading"><span>MARKET SNAPSHOT</span><span className="crypto-heading-line" /><span>COINGECKO · {marketState === "live" ? "LIVE" : marketState === "loading" ? "SYNCING" : "UNAVAILABLE"} · {marketSync}</span></div>
+            <div className="crypto-grid">{marketData.map((coin) => <div className="crypto-card" key={coin.symbol}><div className="coin-icon">{coin.icon}</div><div><strong>{coin.symbol}</strong><span>{coin.name}</span></div><div className="coin-price">{coin.price === null ? "—" : formatUsd(coin.price)}<small className={coin.change === null ? "market-unavailable" : coin.change >= 0 ? "positive" : "negative"}>{coin.change === null ? "data unavailable" : `${formatChange(coin.change)} · 24h`}</small></div></div>)}</div>
           </div>
         </section>
 
