@@ -143,3 +143,8 @@ h1 em { color: var(--cyan); font-style: normal; }
   .language-select select { flex:1; min-width:0; }
   .filter-result { align-self:center; }
 }
+
+.brand-mark .brand-glyph { width:auto; height:auto; display:block; transform:rotate(-45deg); background:transparent; color:var(--text); font:600 9px var(--display); letter-spacing:-.08em; line-height:1; }
+.brand-mark .brand-glyph span { width:auto; height:auto; display:inline; background:transparent; color:var(--cyan); }
+.visual-code { max-width:calc(100% - 28px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.crypto-heading > span:last-child { white-space:nowrap; font-size:8px; }

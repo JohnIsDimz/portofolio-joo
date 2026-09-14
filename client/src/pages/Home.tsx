@@ -91,10 +91,13 @@ const skills = [
 ];
 
 const cryptoData = [
-  { symbol: "BTC", name: "Bitcoin", price: "$64,820", change: "+2.48%", up: true, icon: "₿" },
-  { symbol: "ETH", name: "Ethereum", price: "$2,486", change: "+1.21%", up: true, icon: "Ξ" },
-  { symbol: "SOL", name: "Solana", price: "$148.32", change: "−0.64%", up: false, icon: "S" },
+  { id: "bitcoin", symbol: "BTC", name: "Bitcoin", price: 64820, change: 2.48, icon: "₿" },
+  { id: "ethereum", symbol: "ETH", name: "Ethereum", price: 2486, change: 1.21, icon: "Ξ" },
+  { id: "solana", symbol: "SOL", name: "Solana", price: 148.32, change: -0.64, icon: "S" },
 ];
+type MarketCoin = (typeof cryptoData)[number];
+const formatUsd = (value: number) => `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: value < 10 ? 4 : 2 }).format(value)}`;
+const formatChange = (value: number) => `${value >= 0 ? "+" : "−"}${Math.abs(value).toFixed(2)}%`;
 
 const GITHUB_USERNAME = "JohnIsDimz";
 const FALLBACK_GITHUB = {
@@ -154,6 +157,9 @@ export default function Home() {
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
   const [githubState, setGithubState] = useState<"loading" | "live" | "fallback">("loading");
   const [githubSync, setGithubSync] = useState("menunggu sinkronisasi");
+  const [marketData, setMarketData] = useState<MarketCoin[]>(cryptoData);
+  const [marketState, setMarketState] = useState<"loading" | "live" | "fallback">("loading");
+  const [marketSync, setMarketSync] = useState("menunggu sinkronisasi");
 
   const syncGithub = async (signal?: AbortSignal) => {
     try {
@@ -176,11 +182,29 @@ export default function Home() {
     }
   };
 
+  const syncMarket = async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true", { signal, headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("CoinGecko unavailable");
+      const payload = await response.json();
+      setMarketData(cryptoData.map((coin) => ({ ...coin, price: payload[coin.id]?.usd ?? coin.price, change: payload[coin.id]?.usd_24h_change ?? coin.change })));
+      setMarketState("live");
+      setMarketSync(`sync ${formatTime(new Date())} WIB`);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        setMarketState("fallback");
+        setMarketSync("fallback snapshot");
+      }
+    }
+  };
+
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatTime(new Date())), 1000);
     const controller = new AbortController();
     syncGithub(controller.signal);
+    syncMarket(controller.signal);
     const githubTimer = window.setInterval(() => syncGithub(), 300000);
+    const marketTimer = window.setInterval(() => syncMarket(), 60000);
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
@@ -191,6 +215,7 @@ export default function Home() {
     return () => {
       window.clearInterval(timer);
       window.clearInterval(githubTimer);
+      window.clearInterval(marketTimer);
       controller.abort();
       window.removeEventListener("scroll", onScroll);
     };
@@ -242,7 +267,7 @@ export default function Home() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    syncGithub().finally(() => {
+    Promise.all([syncGithub(), syncMarket()]).finally(() => {
       setLastSync(formatTime(new Date()));
       setRefreshing(false);
     });
@@ -265,7 +290,7 @@ export default function Home() {
       <header className="topbar">
         <div className="topbar-inner">
           <button className="brand" onClick={() => scrollToId("top")} aria-label="Kembali ke atas">
-            <span className="brand-mark"><span /></span>
+            <span className="brand-mark"><span className="brand-glyph">J<span>×</span>E</span></span>
             <span>JOOEXE<span className="brand-dot">.</span></span>
           </button>
           <nav className={`main-nav ${menuOpen ? "is-open" : ""}`}>
@@ -353,8 +378,8 @@ export default function Home() {
               <div className="metric-card data-card"><div className="card-label"><Layers3 size={14} /> OPEN SOURCE</div><div className="metric-value">{githubProfile.publicRepos}</div><div className="metric-foot"><span>repositories</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "live" ? "● active" : "● cached"}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><HeartPulse size={14} /> SYSTEM STATUS</div><div className="metric-value status-value"><span className="status-pulse" /> 99.9%</div><div className="metric-foot"><span>all systems normal</span><span>past 30 days</span></div></div>
             </div>
-            <div className="crypto-heading"><span>MARKET SNAPSHOT</span><span className="crypto-heading-line" /><span>USD / LIVE FEED</span></div>
-            <div className="crypto-grid">{cryptoData.map((coin) => <div className="crypto-card" key={coin.symbol}><div className="coin-icon">{coin.icon}</div><div><strong>{coin.symbol}</strong><span>{coin.name}</span></div><div className="coin-price">{coin.price}<small className={coin.up ? "positive" : "negative"}>{coin.change}</small></div></div>)}</div>
+            <div className="crypto-heading"><span>MARKET SNAPSHOT</span><span className="crypto-heading-line" /><span>COINGECKO · {marketState === "live" ? "LIVE" : marketState === "loading" ? "SYNCING" : "FALLBACK"} · {marketSync}</span></div>
+            <div className="crypto-grid">{marketData.map((coin) => <div className="crypto-card" key={coin.symbol}><div className="coin-icon">{coin.icon}</div><div><strong>{coin.symbol}</strong><span>{coin.name}</span></div><div className="coin-price">{formatUsd(coin.price)}<small className={coin.change >= 0 ? "positive" : "negative"}>{formatChange(coin.change)} · 24h</small></div></div>)}</div>
           </div>
         </section>
 
@@ -364,7 +389,7 @@ export default function Home() {
             <div className="section-heading-row"><div><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><div className={`github-sync github-${githubState}`}><span className="status-pulse" /> GitHub {githubState === "live" ? "live" : githubState === "loading" ? "syncing" : "fallback"} · {githubSync}</div></div><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
             <div className="project-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Semua karya <span>{liveProjects.length.toString().padStart(2, "0")}</span></button><button className={filter === "featured" ? "active" : ""} onClick={() => setFilter("featured")}>Pilihan <span>{liveProjects.filter((project) => project.featured).length.toString().padStart(2, "0")}</span></button></div>
             <div className="project-filters"><label className="project-search"><Search size={15} /><input value={projectQuery} onChange={(event) => setProjectQuery(event.target.value)} placeholder="Cari proyek, deskripsi, atau stack..." aria-label="Cari proyek" /></label><label className="language-select"><span>BAHASA</span><select value={languageFilter} onChange={(event) => setLanguageFilter(event.target.value)} aria-label="Filter bahasa pemrograman"><option value="all">Semua bahasa</option>{availableLanguages.map((language) => <option value={language} key={language}>{language}</option>)}</select></label><span className="filter-result">{visibleProjects.length} dari {liveProjects.length} proyek</span>{(projectQuery || languageFilter !== "all" || filter !== "all") && <button className="clear-filters" onClick={clearProjectFilters}>reset filter <X size={13} /></button>}</div>
-            {visibleProjects.length > 0 ? <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">{String(index + 1).padStart(2, "0")}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div> : <div className="projects-empty"><Search size={22} /><strong>Tidak ada proyek yang cocok.</strong><span>Coba kata kunci atau bahasa lain, lalu reset filter jika perlu.</span><button onClick={clearProjectFilters}>Tampilkan semua proyek</button></div>}
+            {visibleProjects.length > 0 ? <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">{String(index + 1).padStart(2, "0")}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">~/ {project.href.includes("JohnIsDimz/") ? project.href.split("JohnIsDimz/")[1] : project.title}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div> : <div className="projects-empty"><Search size={22} /><strong>Tidak ada proyek yang cocok.</strong><span>Coba kata kunci atau bahasa lain, lalu reset filter jika perlu.</span><button onClick={clearProjectFilters}>Tampilkan semua proyek</button></div>}
             {selectedProject && <div className="case-study-backdrop" role="presentation" onClick={() => setSelectedProject(null)}><article className="case-study-modal" role="dialog" aria-modal="true" aria-labelledby="case-study-title" onClick={(event) => event.stopPropagation()}><button className="case-study-close" onClick={() => setSelectedProject(null)} aria-label="Tutup studi kasus"><X size={18} /></button><div className="case-study-eyebrow">CASE STUDY / {selectedProject.year}</div><div className="case-study-heading"><div><h3 id="case-study-title">{selectedProject.title}</h3><p>{selectedProject.role}</p></div><a href={selectedProject.href} target="_blank" rel="noreferrer">Buka repository <ExternalLink size={14} /></a></div><div className="case-study-tags">{selectedProject.stack.map((item) => <span key={item}>{item}</span>)}</div><div className="case-study-body"><div><span className="case-study-label">01 / Tantangan</span><p>{selectedProject.challenge}</p></div><div><span className="case-study-label">02 / Pendekatan</span><p>{selectedProject.approach}</p></div><div><span className="case-study-label">03 / Hasil</span><p>{selectedProject.outcome}</p></div></div><div className="case-study-highlights"><span>HIGHLIGHTS</span>{selectedProject.highlights.map((highlight) => <div key={highlight}><Check size={14} /> {highlight}</div>)}</div></article></div>}
           </div>
         </section>
