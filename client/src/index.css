@@ -112,3 +112,10 @@ h1 em { color: var(--cyan); font-style: normal; }
   .case-study-heading h3 { font-size:29px; }
   .case-study-body { grid-template-columns:1fr; gap:21px; }
 }
+
+.github-sync { display:flex; align-items:center; gap:8px; margin-top:14px; color:var(--muted); font:10px var(--mono); text-transform:uppercase; letter-spacing:.07em; }
+.github-sync .status-pulse { width:6px; height:6px; }
+.github-live .status-pulse { background:var(--lime); box-shadow:0 0 0 4px rgba(200,243,106,.12); }
+.github-loading .status-pulse { background:var(--cyan); box-shadow:0 0 0 4px rgba(109,229,233,.12); animation:pulse-sync 1.1s ease-in-out infinite; }
+.github-fallback .status-pulse { background:#f58e92; box-shadow:0 0 0 4px rgba(245,142,146,.12); }
+@keyframes pulse-sync { 50% { opacity:.35; transform:scale(.8); } }

@@ -95,6 +95,33 @@ const cryptoData = [
   { symbol: "SOL", name: "Solana", price: "$148.32", change: "−0.64%", up: false, icon: "S" },
 ];
 
+const GITHUB_USERNAME = "JohnIsDimz";
+const FALLBACK_GITHUB = {
+  followers: 1248,
+  publicRepos: 42,
+  avatarUrl: "https://github.com/JohnIsDimz.png",
+};
+type GitHubRepo = {
+  name: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  html_url: string;
+  updated_at: string;
+  fork: boolean;
+};
+type GitHubProfile = typeof FALLBACK_GITHUB;
+type PortfolioProject = (typeof projects)[number];
+
+const languageColors: Record<string, string> = {
+  JavaScript: "#f7df1e",
+  TypeScript: "#3178c6",
+  Python: "#3776ab",
+  HTML: "#e34f26",
+  CSS: "#1572b6",
+};
+const normalizeRepoName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
 function scrollToId(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -120,9 +147,37 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backToTop, setBackToTop] = useState(false);
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
+  const [githubProfile, setGithubProfile] = useState<GitHubProfile>(FALLBACK_GITHUB);
+  const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
+  const [githubState, setGithubState] = useState<"loading" | "live" | "fallback">("loading");
+  const [githubSync, setGithubSync] = useState("menunggu sinkronisasi");
+
+  const syncGithub = async (signal?: AbortSignal) => {
+    try {
+      const [profileResponse, reposResponse] = await Promise.all([
+        fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, { signal, headers: { Accept: "application/vnd.github+json" } }),
+        fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`, { signal, headers: { Accept: "application/vnd.github+json" } }),
+      ]);
+      if (!profileResponse.ok || !reposResponse.ok) throw new Error("GitHub API unavailable");
+      const profile = await profileResponse.json();
+      const repos = (await reposResponse.json()) as GitHubRepo[];
+      setGithubProfile({ followers: profile.followers, publicRepos: profile.public_repos, avatarUrl: profile.avatar_url });
+      setGithubRepos(repos.filter((repo) => !repo.fork));
+      setGithubState("live");
+      setGithubSync(`sync ${formatTime(new Date())} WIB`);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        setGithubState("fallback");
+        setGithubSync("fallback snapshot");
+      }
+    }
+  };
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatTime(new Date())), 1000);
+    const controller = new AbortController();
+    syncGithub(controller.signal);
+    const githubTimer = window.setInterval(() => syncGithub(), 300000);
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
@@ -132,21 +187,47 @@ export default function Home() {
     onScroll();
     return () => {
       window.clearInterval(timer);
+      window.clearInterval(githubTimer);
+      controller.abort();
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
+  const liveProjects: PortfolioProject[] = githubRepos.length
+    ? githubRepos.map((repo) => {
+        const editorialProject = projects.find((project) => normalizeRepoName(project.title) === normalizeRepoName(repo.name));
+        if (editorialProject) return { ...editorialProject, description: repo.description || editorialProject.description, language: repo.language || editorialProject.language, stars: repo.stargazers_count, href: repo.html_url };
+        const language = repo.language || "Open source";
+        return {
+          title: repo.name,
+          year: new Date(repo.updated_at).getFullYear().toString(),
+          description: repo.description || "Repository publik dari GitHub yang terus dikembangkan.",
+          language,
+          color: languageColors[language] || "#6de5e9",
+          stars: repo.stargazers_count,
+          href: repo.html_url,
+          featured: false,
+          role: "Open-source project",
+          stack: [language, "GitHub API"],
+          challenge: "Repository ini tercatat sebagai bagian dari aktivitas open-source publik John Is Dimz.",
+          approach: "Data repository, bahasa pemrograman, jumlah star, dan waktu update diambil otomatis dari GitHub REST API.",
+          outcome: "Informasi karya tetap mengikuti repository sumber tanpa perlu mengubah konten portfolio secara manual.",
+          highlights: [`${repo.stargazers_count} GitHub stars`, `Updated ${new Date(repo.updated_at).toLocaleDateString("id-ID")}`, "Data publik tersinkron otomatis"],
+        };
+      })
+    : projects;
+
   const visibleProjects = useMemo(
-    () => (filter === "featured" ? projects.filter((project) => project.featured) : projects),
-    [filter],
+    () => (filter === "featured" ? liveProjects.filter((project) => project.featured) : liveProjects),
+    [filter, liveProjects],
   );
 
   const handleRefresh = () => {
     setRefreshing(true);
-    window.setTimeout(() => {
+    syncGithub().finally(() => {
       setLastSync(formatTime(new Date()));
       setRefreshing(false);
-    }, 650);
+    });
   };
 
   const copyEndpoint = async (endpoint: string) => {
@@ -231,7 +312,7 @@ export default function Home() {
               <div className="section-heading-row"><h2>Di balik <span className="accent-text">kode</span>.</h2><span className="heading-note">A LITTLE ABOUT ME</span></div>
               <div className="about-grid">
                 <div className="portrait-panel">
-                  <div className="portrait-art"><img className="profile-photo" src="https://github.com/JohnIsDimz.png" alt="Foto profil John Is Dimz" onError={(event) => { event.currentTarget.style.display = "none"; }} /><div className="portrait-overlay" /><div className="portrait-ring ring-a" /><div className="portrait-ring ring-b" /><div className="portrait-symbol">J<span>×</span>E</div><div className="portrait-caption">BUILD / BREAK / REPEAT</div></div>
+                  <div className="portrait-art"><img className="profile-photo" src={githubProfile.avatarUrl} alt="Foto profil John Is Dimz dari GitHub" onError={(event) => { event.currentTarget.src = FALLBACK_GITHUB.avatarUrl; }} /><div className="portrait-overlay" /><div className="portrait-ring ring-a" /><div className="portrait-ring ring-b" /><div className="portrait-symbol">J<span>×</span>E</div><div className="portrait-caption">BUILD / BREAK / REPEAT</div></div>
                   <div className="portrait-footer"><span>JOHN IS DIMZ</span><span>EST. 2020</span></div>
                 </div>
                 <div className="about-text">
@@ -250,8 +331,8 @@ export default function Home() {
             <div className="section-heading-row"><h2>Yang sedang <span className="accent-text">terjadi</span>.</h2><button className="refresh-button" onClick={handleRefresh}><RefreshCw size={14} className={refreshing ? "spin" : ""} /> refresh data</button></div>
             <div className="live-grid">
               <div className="clock-card data-card"><div className="card-label"><Clock3 size={14} /> SERVER TIME / WIB</div><div className="clock-value">{clock}</div><div className="card-foot">Asia/Jakarta <span>SYNCED · {lastSync}</span></div></div>
-              <div className="metric-card data-card"><div className="card-label"><Github size={14} /> GITHUB / PUBLIC</div><div className="metric-value">1,248</div><div className="metric-foot"><span>followers</span><span className="positive">+12 this week</span></div></div>
-              <div className="metric-card data-card"><div className="card-label"><Layers3 size={14} /> OPEN SOURCE</div><div className="metric-value">42</div><div className="metric-foot"><span>repositories</span><span className="positive">● active</span></div></div>
+              <div className="metric-card data-card"><div className="card-label"><Github size={14} /> GITHUB / PUBLIC</div><div className="metric-value">{githubProfile.followers.toLocaleString("id-ID")}</div><div className="metric-foot"><span>followers</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "live" ? "● live api" : "● fallback"}</span></div></div>
+              <div className="metric-card data-card"><div className="card-label"><Layers3 size={14} /> OPEN SOURCE</div><div className="metric-value">{githubProfile.publicRepos}</div><div className="metric-foot"><span>repositories</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "live" ? "● active" : "● cached"}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><HeartPulse size={14} /> SYSTEM STATUS</div><div className="metric-value status-value"><span className="status-pulse" /> 99.9%</div><div className="metric-foot"><span>all systems normal</span><span>past 30 days</span></div></div>
             </div>
             <div className="crypto-heading"><span>MARKET SNAPSHOT</span><span className="crypto-heading-line" /><span>USD / LIVE FEED</span></div>
@@ -262,8 +343,8 @@ export default function Home() {
         <section className="section projects-section" id="projects">
           <div className="page-width">
             <div className="section-kicker"><span>03</span><span className="kicker-line" /><span>SELECTED WORK</span></div>
-            <div className="section-heading-row"><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
-            <div className="project-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Semua karya <span>03</span></button><button className={filter === "featured" ? "active" : ""} onClick={() => setFilter("featured")}>Pilihan <span>02</span></button></div>
+            <div className="section-heading-row"><div><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><div className={`github-sync github-${githubState}`}><span className="status-pulse" /> GitHub {githubState === "live" ? "live" : githubState === "loading" ? "syncing" : "fallback"} · {githubSync}</div></div><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
+            <div className="project-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Semua karya <span>{liveProjects.length.toString().padStart(2, "0")}</span></button><button className={filter === "featured" ? "active" : ""} onClick={() => setFilter("featured")}>Pilihan <span>{liveProjects.filter((project) => project.featured).length.toString().padStart(2, "0")}</span></button></div>
             <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">0{index + 1}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div>
             {selectedProject && <div className="case-study-backdrop" role="presentation" onClick={() => setSelectedProject(null)}><article className="case-study-modal" role="dialog" aria-modal="true" aria-labelledby="case-study-title" onClick={(event) => event.stopPropagation()}><button className="case-study-close" onClick={() => setSelectedProject(null)} aria-label="Tutup studi kasus"><X size={18} /></button><div className="case-study-eyebrow">CASE STUDY / {selectedProject.year}</div><div className="case-study-heading"><div><h3 id="case-study-title">{selectedProject.title}</h3><p>{selectedProject.role}</p></div><a href={selectedProject.href} target="_blank" rel="noreferrer">Buka repository <ExternalLink size={14} /></a></div><div className="case-study-tags">{selectedProject.stack.map((item) => <span key={item}>{item}</span>)}</div><div className="case-study-body"><div><span className="case-study-label">01 / Tantangan</span><p>{selectedProject.challenge}</p></div><div><span className="case-study-label">02 / Pendekatan</span><p>{selectedProject.approach}</p></div><div><span className="case-study-label">03 / Hasil</span><p>{selectedProject.outcome}</p></div></div><div className="case-study-highlights"><span>HIGHLIGHTS</span>{selectedProject.highlights.map((highlight) => <div key={highlight}><Check size={14} /> {highlight}</div>)}</div></article></div>}
           </div>
