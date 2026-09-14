@@ -107,6 +107,7 @@ const formatUsd = (value: number) => `$${new Intl.NumberFormat("en-US", { maximu
 const formatChange = (value: number) => `${value >= 0 ? "+" : "−"}${Math.abs(value).toFixed(2)}%`;
 
 const GITHUB_USERNAME = "JohnIsDimz";
+const WEATHER_LOCATION = { latitude: -3.3194, longitude: 104.9147, label: "Sumatra Selatan, ID" };
 const FALLBACK_GITHUB = {
   followers: 1248,
   publicRepos: 42,
@@ -123,6 +124,7 @@ type GitHubRepo = {
 };
 type GitHubProfile = typeof FALLBACK_GITHUB;
 type PortfolioProject = (typeof projects)[number];
+type WeatherData = { temperature: number | null; code: number | null };
 
 const languageColors: Record<string, string> = {
   JavaScript: "#f7df1e",
@@ -145,6 +147,17 @@ function formatTime(date: Date) {
     second: "2-digit",
     hour12: false,
   }).format(date);
+}
+
+function weatherLabel(code: number | null) {
+  if (code === null) return "syncing weather";
+  if (code === 0) return "clear sky";
+  if ([1, 2, 3].includes(code)) return "partly cloudy";
+  if ([45, 48].includes(code)) return "foggy";
+  if ([51, 53, 55, 56, 57].includes(code)) return "drizzle";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "rain showers";
+  if ([95, 96, 99].includes(code)) return "thunderstorm";
+  return "current conditions";
 }
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -170,6 +183,8 @@ export default function Home() {
   const [marketData, setMarketData] = useState<MarketCoin[]>(cryptoData);
   const [marketState, setMarketState] = useState<"loading" | "live" | "unavailable">("loading");
   const [marketSync, setMarketSync] = useState("menunggu sinkronisasi");
+  const [weather, setWeather] = useState<WeatherData>({ temperature: null, code: null });
+  const [weatherSync, setWeatherSync] = useState("syncing weather");
 
   const syncGithub = async (signal?: AbortSignal) => {
     try {
@@ -209,13 +224,28 @@ export default function Home() {
     }
   };
 
+  const syncWeather = async (signal?: AbortSignal) => {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LOCATION.latitude}&longitude=${WEATHER_LOCATION.longitude}&current=temperature_2m,weather_code&timezone=Asia%2FJakarta`;
+      const response = await fetch(url, { signal });
+      if (!response.ok) throw new Error("Weather API unavailable");
+      const payload = await response.json();
+      setWeather({ temperature: payload.current?.temperature_2m ?? null, code: payload.current?.weather_code ?? null });
+      setWeatherSync(`updated ${formatTime(new Date())} WIB`);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") setWeatherSync("weather unavailable");
+    }
+  };
+
   useEffect(() => {
     const timer = window.setInterval(() => setClock(formatTime(new Date())), 1000);
     const controller = new AbortController();
     syncGithub(controller.signal);
     syncMarket(controller.signal);
+    syncWeather(controller.signal);
     const githubTimer = window.setInterval(() => syncGithub(), 300000);
     const marketTimer = window.setInterval(() => syncMarket(), 60000);
+    const weatherTimer = window.setInterval(() => syncWeather(), 600000);
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
@@ -227,6 +257,7 @@ export default function Home() {
       window.clearInterval(timer);
       window.clearInterval(githubTimer);
       window.clearInterval(marketTimer);
+      window.clearInterval(weatherTimer);
       controller.abort();
       window.removeEventListener("scroll", onScroll);
     };
@@ -278,7 +309,7 @@ export default function Home() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    Promise.all([syncGithub(), syncMarket()]).finally(() => {
+    Promise.all([syncGithub(), syncMarket(), syncWeather()]).finally(() => {
       setLastSync(formatTime(new Date()));
       setRefreshing(false);
     });
@@ -343,7 +374,7 @@ export default function Home() {
             <div className="hero-side">
               <div className="availability-card">
                 <div className="availability-top"><span className="live-dot" /> AVAILABLE FOR SELECTED PROJECTS</div>
-                <div className="availability-body"><span className="availability-value">24<span>°C</span></span><span className="availability-place">Sumatra Selatan, ID<br /><small>clear sky · {clock} WIB</small></span></div>
+                <div className="availability-body"><span className="availability-value">{weather.temperature === null ? <Skeleton className="skeleton-temperature" /> : weather.temperature.toFixed(1)}<span>°C</span></span><span className="availability-place">{WEATHER_LOCATION.label}<br /><small>{weatherLabel(weather.code)} · {weatherSync}</small></span></div>
               </div>
               <div className="terminal-card">
                 <div className="terminal-head"><span className="terminal-dots"><i /><i /><i /></span><span>~/jooexe/portfolio</span><span className="terminal-live">LIVE</span></div>

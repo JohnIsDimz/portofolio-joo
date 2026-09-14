@@ -174,3 +174,5 @@ h1 em { color: var(--cyan); font-style: normal; }
 .skeleton-meta { width:68px; height:10px; }
 .skeleton-meta-short { width:35px; }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation:none; } }
+
+.skeleton-temperature { width:54px; height:43px; }
