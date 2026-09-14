@@ -315,7 +315,7 @@ export default function Home() {
             ))}
             <button className="nav-contact" onClick={() => { scrollToId("contact"); setMenuOpen(false); }}>Mari ngobrol <ArrowUpRight size={15} /></button>
           </nav>
-          <div className="topbar-status"><span className="status-pulse" /> online / jakarta</div>
+          <div className="topbar-status"><span className="status-pulse" /> online / sumatra selatan</div>
           <button className="menu-toggle" aria-label="Buka navigasi" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
@@ -331,7 +331,7 @@ export default function Home() {
             <div className="hero-copy">
               <div className="eyebrow"><span className="eyebrow-line" /> FRONTEND DEVELOPER <span className="eyebrow-code">[001]</span></div>
               <h1>
-                Membangun <span className="outline-word">Digital</span>
+                <span className="outline-word">Wujudkan</span> ide
                 <br />untuk <em>menuju masa depan.</em>
               </h1>
               <p className="hero-lead">Saya <strong>John Is Dimz</strong> — developer yang mengubah ide kompleks menjadi produk web yang cepat, jelas, dan punya karakter.</p>
@@ -343,7 +343,7 @@ export default function Home() {
             <div className="hero-side">
               <div className="availability-card">
                 <div className="availability-top"><span className="live-dot" /> AVAILABLE FOR SELECTED PROJECTS</div>
-                <div className="availability-body"><span className="availability-value">24<span>°C</span></span><span className="availability-place">Jakarta, ID<br /><small>clear sky · {clock} WIB</small></span></div>
+                <div className="availability-body"><span className="availability-value">24<span>°C</span></span><span className="availability-place">Sumatra Selatan, ID<br /><small>clear sky · {clock} WIB</small></span></div>
               </div>
               <div className="terminal-card">
                 <div className="terminal-head"><span className="terminal-dots"><i /><i /><i /></span><span>~/jooexe/portfolio</span><span className="terminal-live">LIVE</span></div>
@@ -371,7 +371,7 @@ export default function Home() {
                 </div>
                 <div className="about-text">
                   <p className="lead-paragraph">Saya percaya interface yang bagus bukan cuma enak dilihat — ia membuat hal yang rumit terasa <strong>sederhana</strong>.</p>
-                  <p>Berbasis di Jakarta, saya bekerja di persimpangan antara engineering dan craft. Dari arsitektur frontend sampai detail kecil di hover state, setiap keputusan punya tujuan: membuat produk lebih mudah dipahami dan lebih menyenangkan digunakan.</p>
+                  <p>Berbasis di Sumatra Selatan, saya bekerja di persimpangan antara engineering dan craft. Dari arsitektur frontend sampai detail kecil di hover state, setiap keputusan punya tujuan: membuat produk lebih mudah dipahami dan lebih menyenangkan digunakan.</p>
                   <div className="about-links"><a href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer"><Github size={16} /> GitHub <ArrowUpRight size={14} /></a><a href="mailto:johnisdimz@gmail.com"><Mail size={16} /> Email <ArrowUpRight size={14} /></a></div>
                 </div>
               </div>
@@ -384,7 +384,7 @@ export default function Home() {
             <div className="section-kicker"><span>02</span><span className="kicker-line" /><span>REAL-TIME / NO BS</span></div>
             <div className="section-heading-row"><h2>Yang sedang <span className="accent-text">terjadi</span>.</h2><button className="refresh-button" onClick={handleRefresh}><RefreshCw size={14} className={refreshing ? "spin" : ""} /> refresh data</button></div>
             <div className="live-grid">
-              <div className="clock-card data-card"><div className="card-label"><Clock3 size={14} /> SERVER TIME / WIB</div><div className="clock-value">{clock}</div><div className="card-foot">Asia/Jakarta <span>SYNCED · {lastSync}</span></div></div>
+              <div className="clock-card data-card"><div className="card-label"><Clock3 size={14} /> LOCAL TIME / WIB</div><div className="clock-value">{clock}</div><div className="card-foot">Sumatra Selatan <span>SYNCED · {lastSync}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><Github size={14} /> GITHUB / PUBLIC</div><div className="metric-value">{githubState === "loading" ? <Skeleton className="skeleton-number" /> : githubProfile.followers.toLocaleString("id-ID")}</div><div className="metric-foot"><span>followers</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "loading" ? "syncing" : githubState === "live" ? "● live api" : "● unavailable"}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><Layers3 size={14} /> OPEN SOURCE</div><div className="metric-value">{githubState === "loading" ? <Skeleton className="skeleton-number skeleton-short" /> : githubProfile.publicRepos}</div><div className="metric-foot"><span>repositories</span><span className={githubState === "live" ? "positive" : "negative"}>{githubState === "loading" ? "syncing" : githubState === "live" ? "● active" : "● unavailable"}</span></div></div>
               <div className="metric-card data-card"><div className="card-label"><HeartPulse size={14} /> SYSTEM STATUS</div><div className="metric-value status-value"><span className="status-pulse" /> 99.9%</div><div className="metric-foot"><span>all systems normal</span><span>past 30 days</span></div></div>
@@ -419,7 +419,7 @@ export default function Home() {
         <section className="section contact-section" id="contact"><div className="contact-grid" /><div className="page-width contact-inner"><div className="section-kicker"><span>06</span><span className="kicker-line" /><span>LET'S CONNECT</span></div><h2>Do you have an<br /><span>interesting idea?</span></h2><p>Kalau iya, saya ingin mendengarnya. Kirim pesan — biasanya saya membalas dalam 1–2 hari kerja.</p><a className="button button-primary contact-button" href="mailto:johnisdimz@gmail.com">Mulai percakapan <Send size={16} /></a><div className="social-links"><a href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer"><Github size={16} /> GitHub</a><a href="mailto:johnisdimz@gmail.com"><Mail size={16} /> Email</a><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a><a href="https://twitter.com" target="_blank" rel="noreferrer"><Twitter size={16} /> Twitter</a></div></div></section>
       </main>
 
-      <footer className="footer"><div className="page-width footer-inner"><span>© 2026 JOOEXE / MADE WITH INTENTION.</span><span>BUILT IN JAKARTA <span className="footer-heart">♥</span></span><button onClick={() => scrollToId("top")}>BACK TO TOP <ArrowUp size={13} /></button></div></footer>
+      <footer className="footer"><div className="page-width footer-inner"><span>© 2026 JOOEXE / MADE WITH INTENTION.</span><span>BUILT IN SUMATRA SELATAN <span className="footer-heart">♥</span></span><button onClick={() => scrollToId("top")}>BACK TO TOP <ArrowUp size={13} /></button></div></footer>
       {backToTop && <button className="floating-top" onClick={() => scrollToId("top")} aria-label="Kembali ke atas"><ArrowUp size={17} /></button>}
     </div>
   );
