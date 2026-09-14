@@ -18,6 +18,7 @@ import {
   Mail,
   Menu,
   RefreshCw,
+  Search,
   Send,
   Server,
   Sparkles,
@@ -142,6 +143,8 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState("");
   const [filter, setFilter] = useState<"all" | "featured">("all");
+  const [projectQuery, setProjectQuery] = useState("");
+  const [languageFilter, setLanguageFilter] = useState("all");
   const [converter, setConverter] = useState("100");
   const [refreshing, setRefreshing] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -217,10 +220,25 @@ export default function Home() {
       })
     : projects;
 
-  const visibleProjects = useMemo(
-    () => (filter === "featured" ? liveProjects.filter((project) => project.featured) : liveProjects),
-    [filter, liveProjects],
+  const availableLanguages = useMemo(
+    () => Array.from(new Set(liveProjects.map((project) => project.language))).sort(),
+    [liveProjects],
   );
+  const visibleProjects = useMemo(() => {
+    const query = projectQuery.trim().toLowerCase();
+    return liveProjects.filter((project) => {
+      const matchesTab = filter === "all" || project.featured;
+      const matchesLanguage = languageFilter === "all" || project.language === languageFilter;
+      const matchesQuery = !query || [project.title, project.description, project.language, ...project.stack].some((value) => value.toLowerCase().includes(query));
+      return matchesTab && matchesLanguage && matchesQuery;
+    });
+  }, [filter, languageFilter, liveProjects, projectQuery]);
+
+  const clearProjectFilters = () => {
+    setProjectQuery("");
+    setLanguageFilter("all");
+    setFilter("all");
+  };
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -345,7 +363,8 @@ export default function Home() {
             <div className="section-kicker"><span>03</span><span className="kicker-line" /><span>SELECTED WORK</span></div>
             <div className="section-heading-row"><div><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><div className={`github-sync github-${githubState}`}><span className="status-pulse" /> GitHub {githubState === "live" ? "live" : githubState === "loading" ? "syncing" : "fallback"} · {githubSync}</div></div><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
             <div className="project-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Semua karya <span>{liveProjects.length.toString().padStart(2, "0")}</span></button><button className={filter === "featured" ? "active" : ""} onClick={() => setFilter("featured")}>Pilihan <span>{liveProjects.filter((project) => project.featured).length.toString().padStart(2, "0")}</span></button></div>
-            <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">0{index + 1}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div>
+            <div className="project-filters"><label className="project-search"><Search size={15} /><input value={projectQuery} onChange={(event) => setProjectQuery(event.target.value)} placeholder="Cari proyek, deskripsi, atau stack..." aria-label="Cari proyek" /></label><label className="language-select"><span>BAHASA</span><select value={languageFilter} onChange={(event) => setLanguageFilter(event.target.value)} aria-label="Filter bahasa pemrograman"><option value="all">Semua bahasa</option>{availableLanguages.map((language) => <option value={language} key={language}>{language}</option>)}</select></label><span className="filter-result">{visibleProjects.length} dari {liveProjects.length} proyek</span>{(projectQuery || languageFilter !== "all" || filter !== "all") && <button className="clear-filters" onClick={clearProjectFilters}>reset filter <X size={13} /></button>}</div>
+            {visibleProjects.length > 0 ? <div className="projects-grid">{visibleProjects.map((project, index) => <button className={`project-card ${index === 0 ? "project-featured" : ""}`} onClick={() => setSelectedProject(project)} key={project.title}><div className="project-top"><span className="project-index">{String(index + 1).padStart(2, "0")}</span><ArrowUpRight size={17} className="project-arrow" /></div><div className="project-visual"><div className="visual-grid" /><span className="visual-code">{index === 0 ? "&lt;div /&gt;" : index === 1 ? "npm run build" : "fetch('/api')"}</span><div className="visual-corner" /></div><div className="project-info"><div><h3>{project.title}</h3><p>{project.description}</p></div><div className="project-meta"><span><i style={{ background: project.color }} />{project.language}</span><span>★ {project.stars}</span></div></div></button>)}</div> : <div className="projects-empty"><Search size={22} /><strong>Tidak ada proyek yang cocok.</strong><span>Coba kata kunci atau bahasa lain, lalu reset filter jika perlu.</span><button onClick={clearProjectFilters}>Tampilkan semua proyek</button></div>}
             {selectedProject && <div className="case-study-backdrop" role="presentation" onClick={() => setSelectedProject(null)}><article className="case-study-modal" role="dialog" aria-modal="true" aria-labelledby="case-study-title" onClick={(event) => event.stopPropagation()}><button className="case-study-close" onClick={() => setSelectedProject(null)} aria-label="Tutup studi kasus"><X size={18} /></button><div className="case-study-eyebrow">CASE STUDY / {selectedProject.year}</div><div className="case-study-heading"><div><h3 id="case-study-title">{selectedProject.title}</h3><p>{selectedProject.role}</p></div><a href={selectedProject.href} target="_blank" rel="noreferrer">Buka repository <ExternalLink size={14} /></a></div><div className="case-study-tags">{selectedProject.stack.map((item) => <span key={item}>{item}</span>)}</div><div className="case-study-body"><div><span className="case-study-label">01 / Tantangan</span><p>{selectedProject.challenge}</p></div><div><span className="case-study-label">02 / Pendekatan</span><p>{selectedProject.approach}</p></div><div><span className="case-study-label">03 / Hasil</span><p>{selectedProject.outcome}</p></div></div><div className="case-study-highlights"><span>HIGHLIGHTS</span>{selectedProject.highlights.map((highlight) => <div key={highlight}><Check size={14} /> {highlight}</div>)}</div></article></div>}
           </div>
         </section>
