@@ -177,6 +177,8 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backToTop, setBackToTop] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
+  const [revealedSections, setRevealedSections] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
   const [githubProfile, setGithubProfile] = useState<GitHubProfile>(FALLBACK_GITHUB);
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
@@ -240,6 +242,16 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const introTimer = window.setTimeout(() => setIntroComplete(true), 950);
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setRevealedSections((current) => current.includes(entry.target.id) ? current : [...current, entry.target.id]);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll<HTMLElement>(".reveal-section").forEach((section) => revealObserver.observe(section));
     const timer = window.setInterval(() => setClock(formatTime(new Date())), 1000);
     const controller = new AbortController();
     syncGithub(controller.signal);
@@ -257,6 +269,8 @@ export default function Home() {
     onScroll();
     return () => {
       window.clearInterval(timer);
+      window.clearTimeout(introTimer);
+      revealObserver.disconnect();
       window.clearInterval(githubTimer);
       window.clearInterval(marketTimer);
       window.clearInterval(weatherTimer);
@@ -330,6 +344,7 @@ export default function Home() {
 
   return (
     <div className="site-shell">
+      {!introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <header className="topbar">
         <div className="topbar-inner">
@@ -392,7 +407,7 @@ export default function Home() {
           <div className="hero-meta page-width"><span>SCROLL TO EXPLORE</span><span className="hero-meta-line" /><span>© 2026</span></div>
         </section>
 
-        <section className="section about-section" id="about">
+        <section className={`section about-section reveal-section ${revealedSections.includes("about") ? "is-revealed" : ""}`} id="about">
           <div className="page-width about-layout">
             <div className="section-kicker"><span>01</span><span className="kicker-line" /><span>PROFILE</span></div>
             <div className="about-content">
@@ -412,7 +427,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section live-section" id="live">
+        <section className={`section live-section reveal-section ${revealedSections.includes("live") ? "is-revealed" : ""}`} id="live">
           <div className="page-width">
             <div className="section-kicker"><span>02</span><span className="kicker-line" /><span>REAL-TIME / NO BS</span></div>
             <div className="section-heading-row"><h2>Yang sedang <span className="accent-text">terjadi</span>.</h2><button className="refresh-button" onClick={handleRefresh}><RefreshCw size={14} className={refreshing ? "spin" : ""} /> refresh data</button></div>
@@ -427,7 +442,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section projects-section" id="projects">
+        <section className={`section projects-section reveal-section ${revealedSections.includes("projects") ? "is-revealed" : ""}`} id="projects">
           <div className="page-width">
             <div className="section-kicker"><span>03</span><span className="kicker-line" /><span>SELECTED WORK</span></div>
             <div className="section-heading-row"><div><h2>Beberapa hal yang <span className="accent-text">saya buat</span>.</h2><div className={`github-sync github-${githubState}`}><span className="status-pulse" /> GitHub {githubState === "live" ? "live" : githubState === "loading" ? "syncing" : "fallback"} · {githubSync}</div></div><a className="text-link" href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer">lihat semua di GitHub <ArrowUpRight size={15} /></a></div>
@@ -438,18 +453,18 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section skills-section" id="skills">
+        <section className={`section skills-section reveal-section ${revealedSections.includes("skills") ? "is-revealed" : ""}`} id="skills">
           <div className="page-width skills-layout">
             <div className="section-kicker"><span>04</span><span className="kicker-line" /><span>THE TOOLKIT</span></div>
             <div className="skills-content"><div className="section-heading-row"><h2>Senjata <span className="accent-text">utama</span>.</h2><span className="heading-note">CONFIDENCE, NOT EGO</span></div><p className="section-intro">Teknologi hanyalah alat. Yang penting adalah tahu kapan harus menggunakannya — dan kapan membuat sesuatu yang lebih sederhana.</p><div className="skills-grid">{skills.map(([name, level]) => <div className="skill-row" key={name as string}><div className="skill-label"><span>{name}</span><span>{level}%</span></div><div className="skill-track"><span style={{ width: `${level}%` }} /></div></div>)}</div><div className="stack-tags"><span><Code2 size={14} /> React</span><span><Server size={14} /> Node.js</span><span><Globe2 size={14} /> REST API</span><span><Zap size={14} /> Vite</span></div></div>
           </div>
         </section>
 
-        <section className="section tools-section" id="api-tools">
+        <section className={`section tools-section reveal-section ${revealedSections.includes("api-tools") ? "is-revealed" : ""}`} id="api-tools">
           <div className="page-width tools-layout"><div className="section-kicker"><span>05</span><span className="kicker-line" /><span>PLAYGROUND</span></div><div className="tools-content"><div className="section-heading-row"><h2>Useful <span className="accent-text">little things</span>.</h2><span className="heading-note">BUILT FOR FUN, KEPT FOR LATER</span></div><div className="tools-grid"><div className="tool-card"><div className="tool-card-head"><Terminal size={17} /><span>API ENDPOINTS</span></div><p>Eksplorasi endpoint publik yang digunakan portfolio ini.</p>{["/api/live", "/api/live/github", "/api/live/crypto"].map((endpoint) => <div className="endpoint-row" key={endpoint}><code>{endpoint}</code><button onClick={() => copyEndpoint(endpoint)} aria-label={`Copy ${endpoint}`}>{copied === endpoint ? <Check size={14} /> : <Copy size={14} />}</button></div>)}</div></div></div></div>
         </section>
 
-        <section className="section contact-section" id="contact"><div className="contact-grid" /><div className="page-width contact-inner"><div className="section-kicker"><span>06</span><span className="kicker-line" /><span>LET'S CONNECT</span></div><h2>Do you have an<br /><span>interesting idea?</span></h2><p>Kalau iya, saya ingin mendengarnya. Kirim pesan — biasanya saya membalas dalam 1–2 hari kerja.</p><a className="button button-primary contact-button" href="mailto:johnisdimz@gmail.com">Mulai percakapan <Send size={16} /></a><div className="social-links"><a href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer"><Github size={16} /> GitHub</a><a href="mailto:johnisdimz@gmail.com"><Mail size={16} /> Email</a><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a><a href="https://twitter.com" target="_blank" rel="noreferrer"><Twitter size={16} /> Twitter</a></div></div></section>
+        <section className={`section contact-section reveal-section ${revealedSections.includes("contact") ? "is-revealed" : ""}`} id="contact"><div className="contact-grid" /><div className="page-width contact-inner"><div className="section-kicker"><span>06</span><span className="kicker-line" /><span>LET'S CONNECT</span></div><h2>Do you have an<br /><span>interesting idea?</span></h2><p>Kalau iya, saya ingin mendengarnya. Kirim pesan — biasanya saya membalas dalam 1–2 hari kerja.</p><a className="button button-primary contact-button" href="mailto:johnisdimz@gmail.com">Mulai percakapan <Send size={16} /></a><div className="social-links"><a href="https://github.com/JohnIsDimz" target="_blank" rel="noreferrer"><Github size={16} /> GitHub</a><a href="mailto:johnisdimz@gmail.com"><Mail size={16} /> Email</a><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a><a href="https://twitter.com" target="_blank" rel="noreferrer"><Twitter size={16} /> Twitter</a></div></div></section>
       </main>
 
       <footer className="footer"><div className="page-width footer-inner"><span>© 2026 JOOEXE / MADE WITH INTENTION.</span><span>BUILT IN SUMATRA SELATAN <span className="footer-heart">♥</span></span><button onClick={() => scrollToId("top")}>BACK TO TOP <ArrowUp size={13} /></button></div></footer>

@@ -209,3 +209,28 @@ h1 em { color: var(--cyan); font-style: normal; }
   .language-select { min-width:0; }
   .language-trigger { min-width:0; }
 }
+
+/* Motion system inspired by editorial portfolio reveals, adapted to Jooexe */
+.intro-loader { position:fixed; z-index:200; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; background:#05090d; animation:intro-exit .55s cubic-bezier(.77,0,.175,1) .85s forwards; pointer-events:none; }
+.intro-loader-mark { width:86px; height:86px; display:grid; place-items:center; border:1px solid var(--cyan); color:var(--text); font:600 22px var(--display); letter-spacing:-.12em; transform:rotate(45deg); box-shadow:0 0 45px rgba(109,229,233,.16); animation:loader-mark-in .7s cubic-bezier(.23,1,.32,1) forwards; }
+.intro-loader-mark span { color:var(--cyan); font-size:.7em; }
+.intro-loader-meta { width:min(290px,70vw); display:flex; justify-content:space-between; color:var(--muted); font:9px var(--mono); letter-spacing:.1em; }
+.intro-loader-track { width:min(290px,70vw); height:1px; background:var(--line); overflow:hidden; }
+.intro-loader-track span { display:block; width:100%; height:100%; background:var(--cyan); transform-origin:left; animation:loader-progress .8s cubic-bezier(.23,1,.32,1) forwards; box-shadow:0 0 14px var(--cyan); }
+@keyframes loader-mark-in { from { opacity:0; transform:rotate(45deg) scale(.7); } to { opacity:1; transform:rotate(45deg) scale(1); } }
+@keyframes loader-progress { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@keyframes intro-exit { to { opacity:0; visibility:hidden; transform:translateY(-8px); } }
+.reveal-section { opacity:0; transform:translateY(28px); transition:opacity .75s cubic-bezier(.23,1,.32,1), transform .75s cubic-bezier(.23,1,.32,1); }
+.reveal-section.is-revealed { opacity:1; transform:translateY(0); }
+.reveal-section.is-revealed .section-kicker { animation:reveal-child .55s cubic-bezier(.23,1,.32,1) both; }
+.reveal-section.is-revealed .section-heading-row { animation:reveal-child .65s cubic-bezier(.23,1,.32,1) .06s both; }
+.reveal-section.is-revealed .data-card, .reveal-section.is-revealed .project-card, .reveal-section.is-revealed .skill-row, .reveal-section.is-revealed .tool-card { animation:reveal-child .6s cubic-bezier(.23,1,.32,1) both; }
+.reveal-section.is-revealed .data-card:nth-child(2), .reveal-section.is-revealed .project-card:nth-child(2), .reveal-section.is-revealed .skill-row:nth-child(2) { animation-delay:.08s; }
+.reveal-section.is-revealed .data-card:nth-child(3), .reveal-section.is-revealed .project-card:nth-child(3), .reveal-section.is-revealed .skill-row:nth-child(3) { animation-delay:.16s; }
+.reveal-section.is-revealed .data-card:nth-child(4), .reveal-section.is-revealed .project-card:nth-child(4), .reveal-section.is-revealed .skill-row:nth-child(4) { animation-delay:.24s; }
+@keyframes reveal-child { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.project-card, .tool-card, .crypto-card, .data-card { position:relative; overflow:hidden; }
+.project-card::after, .tool-card::after, .crypto-card::after, .data-card::after { content:""; position:absolute; inset:0; pointer-events:none; opacity:0; background:linear-gradient(105deg,transparent 35%,rgba(109,229,233,.08) 50%,transparent 65%); transform:translateX(-100%); transition:opacity .2s ease; }
+.project-card:hover::after, .tool-card:hover::after, .crypto-card:hover::after, .data-card:hover::after { opacity:1; animation:card-shine .8s ease-out; }
+@keyframes card-shine { to { transform:translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .intro-loader { animation:none; opacity:0; visibility:hidden; } .intro-loader-mark, .intro-loader-track span { animation:none; } .reveal-section { opacity:1; transform:none; transition:none; } .reveal-section.is-revealed .section-kicker, .reveal-section.is-revealed .section-heading-row, .reveal-section.is-revealed .data-card, .reveal-section.is-revealed .project-card, .reveal-section.is-revealed .skill-row, .reveal-section.is-revealed .tool-card { animation:none; } }
