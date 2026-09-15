@@ -362,13 +362,13 @@ export default function Home() {
             <div className="hero-copy">
               <div className="eyebrow"><span className="eyebrow-line" /> FRONTEND DEVELOPER <span className="eyebrow-code">[001]</span></div>
               <h1>
-                <span className="outline-word">Wujudkan</span> ide
-                <br />untuk <em>menuju masa depan.</em>
+                <span className="outline-word">Wujudkan</span> <span className="outline-word">Mimpimu</span>
+                <br /><em>Untuk Menuju Masa Depan.</em>
               </h1>
               <p className="hero-lead">Saya <strong>John Is Dimz</strong> — developer yang mengubah ide kompleks menjadi produk web yang cepat, jelas, dan punya karakter.</p>
               <div className="hero-actions">
                 <button className="button button-primary" onClick={() => scrollToId("projects")}>Lihat karya <ArrowDown size={16} /></button>
-                <a className="button button-ghost" href="mailto:johnisdimz@gmail.com">Hubungi saya <Mail size={16} /></a>
+                <a className="button button-ghost" href="mailto:johnisdimz@gmail.com">Hubungi Kami <Mail size={16} /></a>
               </div>
             </div>
             <div className="hero-side">
