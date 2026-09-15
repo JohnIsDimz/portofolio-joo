@@ -234,3 +234,7 @@ h1 em { color: var(--cyan); font-style: normal; }
 .project-card:hover::after, .tool-card:hover::after, .crypto-card:hover::after, .data-card:hover::after { opacity:1; animation:card-shine .8s ease-out; }
 @keyframes card-shine { to { transform:translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .intro-loader { animation:none; opacity:0; visibility:hidden; } .intro-loader-mark, .intro-loader-track span { animation:none; } .reveal-section { opacity:1; transform:none; transition:none; } .reveal-section.is-revealed .section-kicker, .reveal-section.is-revealed .section-heading-row, .reveal-section.is-revealed .data-card, .reveal-section.is-revealed .project-card, .reveal-section.is-revealed .skill-row, .reveal-section.is-revealed .tool-card { animation:none; } }
+
+.hero-grid, .hero-orb, .hero-inner { will-change: transform; transition: transform .22s cubic-bezier(.23,1,.32,1); }
+.hero-grid { transform-origin:center; }
+@media (prefers-reduced-motion: reduce) { .hero-grid, .hero-orb, .hero-inner { transition:none; transform:none !important; } }

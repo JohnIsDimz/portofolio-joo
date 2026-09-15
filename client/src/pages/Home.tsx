@@ -179,6 +179,7 @@ export default function Home() {
   const [backToTop, setBackToTop] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
+  const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0, scroll: 0 });
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
   const [githubProfile, setGithubProfile] = useState<GitHubProfile>(FALLBACK_GITHUB);
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
@@ -264,8 +265,16 @@ export default function Home() {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
       setBackToTop(window.scrollY > 680);
+      setHeroParallax((current) => ({ ...current, scroll: Math.min(window.scrollY * 0.08, 42) }));
     };
+    const onPointerMove = (event: PointerEvent) => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      setHeroParallax({ x: (event.clientX / window.innerWidth - 0.5) * 2, y: (event.clientY / window.innerHeight - 0.5) * 2, scroll: Math.min(window.scrollY * 0.08, 42) });
+    };
+    const onPointerLeave = () => setHeroParallax((current) => ({ ...current, x: 0, y: 0 }));
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onPointerLeave);
     onScroll();
     return () => {
       window.clearInterval(timer);
@@ -276,6 +285,8 @@ export default function Home() {
       window.clearInterval(weatherTimer);
       controller.abort();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerLeave);
     };
   }, []);
 
@@ -372,10 +383,10 @@ export default function Home() {
 
       <main id="top">
         <section className="hero-section">
-          <div className="hero-grid" />
-          <div className="hero-orb orb-one" />
-          <div className="hero-orb orb-two" />
-          <div className="hero-inner page-width">
+          <div className="hero-grid" style={{ transform: `translate3d(${heroParallax.x * -8}px, ${heroParallax.y * -5 - heroParallax.scroll * 0.35}px, 0)` }} />
+          <div className="hero-orb orb-one" style={{ transform: `translate3d(${heroParallax.x * 16}px, ${heroParallax.y * 12 - heroParallax.scroll}px, 0)` }} />
+          <div className="hero-orb orb-two" style={{ transform: `translate3d(${heroParallax.x * -24}px, ${heroParallax.y * -18 - heroParallax.scroll * 0.55}px, 0)` }} />
+          <div className="hero-inner page-width" style={{ transform: `translate3d(${heroParallax.x * 2}px, ${heroParallax.y * 2 - heroParallax.scroll * 0.16}px, 0)` }}>
             <div className="hero-copy">
               <div className="eyebrow"><span className="eyebrow-line" /> FRONTEND DEVELOPER <span className="eyebrow-code">[001]</span></div>
               <h1>
