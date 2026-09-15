@@ -245,3 +245,8 @@ h1 em { color: var(--cyan); font-style: normal; }
 /* Five-second intro pacing */
 .intro-loader { animation-delay:4.45s; }
 .intro-loader-track span { animation-duration:4.7s; }
+
+.topbar { transform:translateY(0); transition:transform .35s cubic-bezier(.23,1,.32,1), background .25s ease; }
+.topbar.nav-hidden { transform:translateY(-110%); }
+.reveal-section { transition-duration:.72s; }
+@media (prefers-reduced-motion: reduce) { .topbar, .topbar.nav-hidden { transform:none; transition:none; } }

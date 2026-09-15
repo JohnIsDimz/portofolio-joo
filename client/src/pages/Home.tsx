@@ -180,6 +180,7 @@ export default function Home() {
   const [introComplete, setIntroComplete] = useState(false);
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
   const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0, scroll: 0 });
+  const [navHidden, setNavHidden] = useState(false);
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
   const [githubProfile, setGithubProfile] = useState<GitHubProfile>(FALLBACK_GITHUB);
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
@@ -246,10 +247,9 @@ export default function Home() {
     const introTimer = window.setTimeout(() => setIntroComplete(true), 5000);
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setRevealedSections((current) => current.includes(entry.target.id) ? current : [...current, entry.target.id]);
-          revealObserver.unobserve(entry.target);
-        }
+        setRevealedSections((current) => entry.isIntersecting
+          ? current.includes(entry.target.id) ? current : [...current, entry.target.id]
+          : current.filter((id) => id !== entry.target.id));
       });
     }, { threshold: 0.12 });
     document.querySelectorAll<HTMLElement>(".reveal-section").forEach((section) => revealObserver.observe(section));
@@ -261,11 +261,15 @@ export default function Home() {
     const githubTimer = window.setInterval(() => syncGithub(), 300000);
     const marketTimer = window.setInterval(() => syncMarket(), 60000);
     const weatherTimer = window.setInterval(() => syncWeather(), 600000);
+    let previousScrollY = window.scrollY;
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
       setBackToTop(window.scrollY > 680);
       setHeroParallax((current) => ({ ...current, scroll: Math.min(window.scrollY * 0.08, 42) }));
+      if (window.scrollY > 90) setNavHidden(window.scrollY > previousScrollY + 4);
+      else setNavHidden(false);
+      previousScrollY = window.scrollY;
     };
     const onPointerMove = (event: PointerEvent) => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -357,7 +361,7 @@ export default function Home() {
     <div className="site-shell">
       {!introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
-      <header className="topbar">
+      <header className={`topbar ${navHidden ? "nav-hidden" : ""}`}>
         <div className="topbar-inner">
           <button className="brand" onClick={() => scrollToId("top")} aria-label="Kembali ke atas">
             <span className="brand-mark"><span className="brand-glyph">J<span>×</span>E</span></span>
