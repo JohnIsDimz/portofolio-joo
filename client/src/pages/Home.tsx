@@ -178,6 +178,7 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backToTop, setBackToTop] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
+  const [cosmicComplete, setCosmicComplete] = useState(false);
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
   const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0, scroll: 0 });
   const [navHidden, setNavHidden] = useState(false);
@@ -244,7 +245,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const introTimer = window.setTimeout(() => setIntroComplete(true), 5000);
+    const cosmicTimer = window.setTimeout(() => setCosmicComplete(true), 2200);
+    const introTimer = window.setTimeout(() => setIntroComplete(true), 7200);
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         setRevealedSections((current) => entry.isIntersecting
@@ -283,6 +285,7 @@ export default function Home() {
     return () => {
       window.clearInterval(timer);
       window.clearTimeout(introTimer);
+      window.clearTimeout(cosmicTimer);
       revealObserver.disconnect();
       window.clearInterval(githubTimer);
       window.clearInterval(marketTimer);
@@ -359,7 +362,8 @@ export default function Home() {
 
   return (
     <div className="site-shell">
-      {!introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
+      {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="earth-scene"><div className="earth-glow" /><div className="earth"><div className="earth-surface" /><div className="earth-clouds" /><div className="earth-shine" /></div><div className="earth-orbit" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
+      {cosmicComplete && !introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <header className={`topbar ${navHidden ? "nav-hidden" : ""}`}>
         <div className="topbar-inner">

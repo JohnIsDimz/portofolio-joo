@@ -250,3 +250,24 @@ h1 em { color: var(--cyan); font-style: normal; }
 .topbar.nav-hidden { transform:translateY(-110%); }
 .reveal-section { transition-duration:.72s; }
 @media (prefers-reduced-motion: reduce) { .topbar, .topbar.nav-hidden { transform:none; transition:none; } }
+
+/* Cosmic preloader: a quiet orbital scene before the Jooexe splash */
+.cosmic-loader { position:fixed; z-index:210; inset:0; overflow:hidden; display:grid; place-items:center; background:radial-gradient(circle at 50% 48%,#102c4f 0%,#061326 33%,#02050b 78%); animation:cosmic-exit .7s cubic-bezier(.77,0,.175,1) 1.72s forwards; pointer-events:none; }
+.star-field { position:absolute; inset:-15%; background-image:radial-gradient(circle,rgba(255,255,255,.95) 0 1px,transparent 1.5px),radial-gradient(circle,rgba(126,207,255,.7) 0 1px,transparent 1.5px); background-size:97px 113px,151px 173px; background-position:12px 29px,67px 4px; opacity:.72; animation:stars-drift 9s linear infinite; }
+.star-field-b { background-size:191px 137px,239px 211px; background-position:38px 72px,91px 22px; opacity:.35; animation-duration:15s; animation-direction:reverse; }
+.earth-scene { position:relative; width:min(410px,72vw); aspect-ratio:1; display:grid; place-items:center; transform:scale(.78); animation:earth-arrive 1.3s cubic-bezier(.23,1,.32,1) forwards; }
+.earth-glow { position:absolute; width:82%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,rgba(55,163,255,.42),rgba(29,96,197,.16) 46%,transparent 70%); filter:blur(22px); animation:glow-pulse 2.4s ease-in-out infinite; }
+.earth { position:relative; z-index:2; width:55%; aspect-ratio:1; overflow:hidden; border-radius:50%; background:linear-gradient(105deg,#071a3b 0 34%,#0e5791 52%,#071a3b 78%); box-shadow:inset -30px -8px 45px rgba(0,0,0,.86),inset 13px 0 24px rgba(126,217,255,.42),0 0 32px rgba(79,188,255,.42); transform:rotate(-12deg); }
+.earth-surface { position:absolute; inset:-22%; background:radial-gradient(ellipse at 28% 31%,#5cae78 0 6%,transparent 7%),radial-gradient(ellipse at 62% 25%,#8abf77 0 7%,transparent 8%),radial-gradient(ellipse at 40% 57%,#4d9b6b 0 9%,transparent 10%),radial-gradient(ellipse at 78% 65%,#70aa66 0 8%,transparent 9%),radial-gradient(ellipse at 17% 77%,#579d70 0 7%,transparent 8%); background-size:170px 160px; animation:earth-spin 7s linear infinite; filter:saturate(.85); }
+.earth-clouds { position:absolute; inset:-18%; background:repeating-linear-gradient(168deg,transparent 0 24px,rgba(255,255,255,.17) 25px 29px,transparent 30px 52px); mix-blend-mode:screen; opacity:.7; animation:earth-spin 11s linear infinite reverse; }
+.earth-shine { position:absolute; inset:0; border-radius:50%; background:linear-gradient(112deg,rgba(255,255,255,.32),transparent 22%,transparent 58%,rgba(0,0,0,.38)); }
+.earth-orbit { position:absolute; z-index:3; width:78%; aspect-ratio:2.4; border:1px solid rgba(132,219,255,.44); border-radius:50%; transform:rotate(-22deg); box-shadow:0 0 16px rgba(93,190,255,.16); }
+.earth-orbit::after { content:""; position:absolute; width:7px; height:7px; top:8%; right:14%; border-radius:50%; background:#c8f36a; box-shadow:0 0 16px #c8f36a; }
+.cosmic-caption { position:absolute; z-index:5; bottom:3%; display:flex; flex-direction:column; align-items:center; gap:8px; color:rgba(185,218,238,.7); font:9px var(--mono); letter-spacing:.16em; }
+.cosmic-caption strong { color:var(--cyan); font-weight:400; font-size:10px; }
+@keyframes earth-arrive { from { opacity:0; transform:scale(.58) rotate(-8deg); } to { opacity:1; transform:scale(1) rotate(0); } }
+@keyframes earth-spin { from { transform:translateX(-8%) rotate(0); } to { transform:translateX(8%) rotate(360deg); } }
+@keyframes glow-pulse { 50% { transform:scale(1.08); opacity:.72; } }
+@keyframes stars-drift { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(-22px,18px,0) scale(1.04); } }
+@keyframes cosmic-exit { to { opacity:0; visibility:hidden; transform:scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .cosmic-loader { animation:none; opacity:0; visibility:hidden; } .star-field, .earth-scene, .earth-glow, .earth-surface, .earth-clouds { animation:none; } }
