@@ -238,3 +238,10 @@ h1 em { color: var(--cyan); font-style: normal; }
 .hero-grid, .hero-orb, .hero-inner { will-change: transform; transition: transform .22s cubic-bezier(.23,1,.32,1); }
 .hero-grid { transform-origin:center; }
 @media (prefers-reduced-motion: reduce) { .hero-grid, .hero-orb, .hero-inner { transition:none; transform:none !important; } }
+
+.section-heading-row .refresh-button { margin-left: 24px; }
+@media (max-width:680px) { .section-heading-row .refresh-button { margin-left: 0; margin-top: 20px; } }
+
+/* Five-second intro pacing */
+.intro-loader { animation-delay:4.45s; }
+.intro-loader-track span { animation-duration:4.7s; }

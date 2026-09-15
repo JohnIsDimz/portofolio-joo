@@ -243,7 +243,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const introTimer = window.setTimeout(() => setIntroComplete(true), 950);
+    const introTimer = window.setTimeout(() => setIntroComplete(true), 5000);
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
