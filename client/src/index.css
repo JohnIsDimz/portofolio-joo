@@ -304,3 +304,9 @@ h1 em { color: var(--cyan); font-style: normal; }
 @keyframes earth-light-sweep { from { opacity:.35; transform:rotate(0deg); } 50% { opacity:.72; transform:rotate(180deg); } to { opacity:.35; transform:rotate(360deg); } }
 @keyframes orbit-drift { from { transform:rotate(-22deg) scale(1); } 50% { transform:rotate(-16deg) scale(1.04); } to { transform:rotate(-22deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .earth img, .earth, .earth .earth-shine, .earth-orbit { animation:none; } }
+
+/* Keep the 2D Earth asset spherical on screen: rotate the circular texture, not its plane */
+.earth img { transform-style:flat; backface-visibility:visible; animation:earth-rotate-round 8s linear .2s infinite; }
+.earth .earth-shine { animation:earth-light-round 8s linear .2s infinite; }
+@keyframes earth-rotate-round { from { transform:rotate(0deg) scale(1.015); } 50% { transform:rotate(180deg) scale(1.015); } to { transform:rotate(360deg) scale(1.015); } }
+@keyframes earth-light-round { from { opacity:.32; transform:rotate(0deg); } 50% { opacity:.68; transform:rotate(180deg); } to { opacity:.32; transform:rotate(360deg); } }
