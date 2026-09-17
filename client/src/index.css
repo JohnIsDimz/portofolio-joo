@@ -290,3 +290,17 @@ h1 em { color: var(--cyan); font-style: normal; }
 @keyframes earth-rotate { 0% { transform:rotate(-1deg) scale(1); } 50% { transform:rotate(1deg) scale(1.015); } 100% { transform:rotate(-1deg) scale(1); } }
 @keyframes particle-float { from { opacity:.18; transform:translate3d(-3px,4px,0) scale(.7); } to { opacity:.95; transform:translate3d(4px,-7px,0) scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .earth, .earth-scene, .earth img, .particle-layer i { animation:none; } }
+
+/* Final Earth motion tuning: visible texture first, then continuous rotation and exit zoom */
+.cosmic-loader { animation-delay:1.55s; animation-duration:.65s; }
+.earth-scene { perspective:900px; animation:earth-enter-fast .42s cubic-bezier(.23,1,.32,1) both; }
+.earth { animation:earth-breathe 3.8s ease-in-out .42s infinite alternate; }
+.earth img { opacity:1; transform-origin:center; transform-style:preserve-3d; animation:earth-rotate-3d 5.2s linear .2s infinite; }
+.earth .earth-shine { animation:earth-light-sweep 5.2s linear .2s infinite; }
+.earth-orbit { animation:orbit-drift 8s linear infinite; }
+@keyframes earth-enter-fast { from { opacity:0; transform:scale(.86); } to { opacity:1; transform:scale(1); } }
+@keyframes earth-rotate-3d { from { transform:rotateY(0deg) scale(1.02); } 25% { transform:rotateY(90deg) scale(.94); } 50% { transform:rotateY(180deg) scale(1.02); } 75% { transform:rotateY(270deg) scale(.94); } to { transform:rotateY(360deg) scale(1.02); } }
+@keyframes earth-breathe { from { transform:scale(.98); } to { transform:scale(1.045); } }
+@keyframes earth-light-sweep { from { opacity:.35; transform:rotate(0deg); } 50% { opacity:.72; transform:rotate(180deg); } to { opacity:.35; transform:rotate(360deg); } }
+@keyframes orbit-drift { from { transform:rotate(-22deg) scale(1); } 50% { transform:rotate(-16deg) scale(1.04); } to { transform:rotate(-22deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .earth img, .earth, .earth .earth-shine, .earth-orbit { animation:none; } }
