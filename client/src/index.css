@@ -310,3 +310,18 @@ h1 em { color: var(--cyan); font-style: normal; }
 .earth .earth-shine { animation:earth-light-round 8s linear .2s infinite; }
 @keyframes earth-rotate-round { from { transform:rotate(0deg) scale(1.015); } 50% { transform:rotate(180deg) scale(1.015); } to { transform:rotate(360deg) scale(1.015); } }
 @keyframes earth-light-round { from { opacity:.32; transform:rotate(0deg); } 50% { opacity:.68; transform:rotate(180deg); } to { opacity:.32; transform:rotate(360deg); } }
+
+/* Adaptive animation quality for phones and constrained devices */
+.low-power-mode .star-field-b { display:none; }
+.low-power-mode .earth-glow { filter:blur(10px); opacity:.7; }
+.low-power-mode .earth img { animation-duration:12s; filter:saturate(1.02) contrast(1.02) drop-shadow(0 0 10px rgba(67,176,255,.26)); }
+.low-power-mode .earth .earth-shine { animation-duration:12s; }
+.low-power-mode .earth-orbit { animation-duration:14s; opacity:.55; }
+.low-power-mode .earth-orbit-secondary { display:none; }
+.low-power-mode .particle-layer i:nth-child(even) { display:none; }
+.low-power-mode .cosmic-loader { background:radial-gradient(circle at 50% 48%,#0b2340 0%,#040c19 42%,#02050b 82%); }
+.low-power-mode .hero-grid, .low-power-mode .hero-orb { will-change:auto; }
+@media (max-width:680px) {
+  .earth-scene { width:min(300px,68vw); }
+  .cosmic-caption { bottom:6%; font-size:8px; }
+}

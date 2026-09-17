@@ -182,6 +182,7 @@ export default function Home() {
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
   const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0, scroll: 0 });
   const [navHidden, setNavHidden] = useState(false);
+  const [lowPowerMode, setLowPowerMode] = useState(false);
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
   const [githubProfile, setGithubProfile] = useState<GitHubProfile>(FALLBACK_GITHUB);
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
@@ -245,6 +246,12 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 680px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const detectPerformance = () => setLowPowerMode(mobileQuery.matches || reducedMotionQuery.matches || navigator.hardwareConcurrency <= 4 || Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData));
+    detectPerformance();
+    mobileQuery.addEventListener("change", detectPerformance);
+    reducedMotionQuery.addEventListener("change", detectPerformance);
     const cosmicTimer = window.setTimeout(() => setCosmicComplete(true), 2200);
     const introTimer = window.setTimeout(() => setIntroComplete(true), 7200);
     const revealObserver = new IntersectionObserver((entries) => {
@@ -274,7 +281,7 @@ export default function Home() {
       previousScrollY = window.scrollY;
     };
     const onPointerMove = (event: PointerEvent) => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.matchMedia("(max-width: 680px)").matches || Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)) return;
       setHeroParallax({ x: (event.clientX / window.innerWidth - 0.5) * 2, y: (event.clientY / window.innerHeight - 0.5) * 2, scroll: Math.min(window.scrollY * 0.08, 42) });
     };
     const onPointerLeave = () => setHeroParallax((current) => ({ ...current, x: 0, y: 0 }));
@@ -294,6 +301,8 @@ export default function Home() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerleave", onPointerLeave);
+      mobileQuery.removeEventListener("change", detectPerformance);
+      reducedMotionQuery.removeEventListener("change", detectPerformance);
     };
   }, []);
 
@@ -362,8 +371,8 @@ export default function Home() {
   };
 
   return (
-    <div className={`site-shell ${introComplete ? "is-ready" : "is-preloading"}`}>
-      {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="particle-layer">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ "--particle-x": `${(index * 37) % 100}%`, "--particle-y": `${(index * 61) % 100}%`, "--particle-delay": `${(index % 9) * 0.22}s`, "--particle-size": `${index % 3 === 0 ? 3 : 2}px` } as React.CSSProperties} />)}</div><div className="earth-scene"><div className="earth-glow" /><div className="earth"><img src="/manus-storage/jooexe-realistic-earth_7aefbeda.png" alt="" /><div className="earth-shine" /></div><div className="earth-orbit" /><div className="earth-orbit earth-orbit-secondary" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
+    <div className={`site-shell ${introComplete ? "is-ready" : "is-preloading"} ${lowPowerMode ? "low-power-mode" : "full-motion-mode"}`} data-animation-quality={lowPowerMode ? "low" : "high"}>
+      {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="particle-layer">{Array.from({ length: lowPowerMode ? 12 : 28 }, (_, index) => <i key={index} style={{ "--particle-x": `${(index * 37) % 100}%`, "--particle-y": `${(index * 61) % 100}%`, "--particle-delay": `${(index % 9) * 0.22}s`, "--particle-size": `${index % 3 === 0 ? 3 : 2}px` } as React.CSSProperties} />)}</div><div className="earth-scene"><div className="earth-glow" /><div className="earth"><img src="/manus-storage/jooexe-realistic-earth_7aefbeda.png" alt="" /><div className="earth-shine" /></div><div className="earth-orbit" /><div className="earth-orbit earth-orbit-secondary" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
       {cosmicComplete && !introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <header className={`topbar ${navHidden ? "nav-hidden" : ""}`}>
