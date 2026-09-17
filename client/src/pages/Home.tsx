@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -163,6 +163,28 @@ function weatherLabel(code: number | null) {
 
 function Skeleton({ className = "" }: { className?: string }) {
   return <span className={`skeleton ${className}`} aria-hidden="true" />;
+}
+
+function WebGLEarth({ lowPowerMode }: { lowPowerMode: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [textureReady, setTextureReady] = useState(false);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const gl = canvas?.getContext("webgl", { alpha: true, antialias: !lowPowerMode, powerPreference: lowPowerMode ? "low-power" : "high-performance" });
+    if (!canvas || !gl) return;
+    const vertexSource = `attribute vec3 position; attribute vec3 normal; attribute vec2 uv; uniform mat4 projection; uniform mat4 model; varying vec3 vNormal; varying vec2 vUv; void main(){ vNormal=mat3(model)*normal; vUv=uv; gl_Position=projection*model*vec4(position,1.0); }`;
+    const fragmentSource = `precision mediump float; varying vec3 vNormal; varying vec2 vUv; uniform sampler2D earthTexture; uniform float rotation; void main(){ vec2 shifted=vec2(fract(vUv.x+rotation),vUv.y); vec4 tex=texture2D(earthTexture,shifted); vec3 light=normalize(vec3(-0.45,0.35,0.82)); float diffuse=max(dot(normalize(vNormal),light),0.0); float rim=pow(1.0-max(dot(normalize(vNormal),vec3(0.0,0.0,1.0)),0.0),2.4); vec3 color=tex.rgb*(0.22+diffuse*0.9)+vec3(0.08,0.35,0.62)*rim*0.48; gl_FragColor=vec4(color,tex.a); }`;
+    const compile = (type: number, source: string) => { const shader = gl.createShader(type)!; gl.shaderSource(shader, source); gl.compileShader(shader); return shader; };
+    const program = gl.createProgram()!; gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource)); gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource)); gl.linkProgram(program); gl.useProgram(program);
+    const vertices: number[] = [], indices: number[] = []; const latBands = lowPowerMode ? 28 : 42; const lonBands = lowPowerMode ? 42 : 64;
+    for (let lat = 0; lat <= latBands; lat++) { const theta = lat * Math.PI / latBands; const sin = Math.sin(theta), cos = Math.cos(theta); for (let lon = 0; lon <= lonBands; lon++) { const phi = lon * 2 * Math.PI / lonBands; const x = Math.cos(phi) * sin, y = cos, z = Math.sin(phi) * sin; vertices.push(x, y, z, x, y, z, 1 - lon / lonBands, 1 - lat / latBands); } }
+    for (let lat = 0; lat < latBands; lat++) for (let lon = 0; lon < lonBands; lon++) { const first = lat * (lonBands + 1) + lon, second = first + lonBands + 1; indices.push(first, second, first + 1, second, second + 1, first + 1); }
+    const buffer = gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW); const indexBuffer = gl.createBuffer()!; gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    const stride = 8 * 4; const position = gl.getAttribLocation(program, "position"), normal = gl.getAttribLocation(program, "normal"), uv = gl.getAttribLocation(program, "uv"); gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position, 3, gl.FLOAT, false, stride, 0); gl.enableVertexAttribArray(normal); gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, stride, 12); gl.enableVertexAttribArray(uv); gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, stride, 24);
+    const texture = gl.createTexture()!; const image = new Image(); image.src = "/manus-storage/jooexe-earth-equirectangular_5836872f.jpg"; image.onload = () => { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, lowPowerMode ? gl.LINEAR : gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); if (!lowPowerMode) gl.generateMipmap(gl.TEXTURE_2D); setTextureReady(true); };
+    const projection = gl.getUniformLocation(program, "projection"), model = gl.getUniformLocation(program, "model"), rotation = gl.getUniformLocation(program, "rotation"); let raf = 0; let angle = 0; const resize = () => { const dpr = Math.min(window.devicePixelRatio || 1, lowPowerMode ? 1.25 : 2); const size = Math.min(canvas.clientWidth, canvas.clientHeight); canvas.width = size * dpr; canvas.height = size * dpr; gl.viewport(0, 0, canvas.width, canvas.height); }; const frame = () => { resize(); angle += lowPowerMode ? 0.0018 : 0.0032; const aspect = canvas.width / canvas.height; const p = 1.35, projectionMatrix = new Float32Array([p / aspect,0,0,0, 0,p,0,0, 0,0,-1,-1, 0,0,-0.2,0]); const c = Math.cos(angle), s = Math.sin(angle); const modelMatrix = new Float32Array([c,0,s,0, 0,1,0,0, -s,0,c,0, 0,0,0,1]); gl.uniformMatrix4fv(projection, false, projectionMatrix); gl.uniformMatrix4fv(model, false, modelMatrix); gl.uniform1f(rotation, angle / (Math.PI * 2)); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0); raf = requestAnimationFrame(frame); }; frame(); return () => { cancelAnimationFrame(raf); image.onload = null; gl.deleteProgram(program); };
+  }, [lowPowerMode]);
+  return <><img className={`earth-webgl-fallback ${textureReady ? "is-hidden" : ""}`} src="/manus-storage/jooexe-realistic-earth_7aefbeda.png" alt="" /><canvas ref={canvasRef} className={`earth-webgl ${textureReady ? "is-ready" : ""}`} aria-label="Bumi 3D berputar" /></>;
 }
 
 export default function Home() {
@@ -372,7 +394,7 @@ export default function Home() {
 
   return (
     <div className={`site-shell ${introComplete ? "is-ready" : "is-preloading"} ${lowPowerMode ? "low-power-mode" : "full-motion-mode"}`} data-animation-quality={lowPowerMode ? "low" : "high"}>
-      {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="particle-layer">{Array.from({ length: lowPowerMode ? 12 : 28 }, (_, index) => <i key={index} style={{ "--particle-x": `${(index * 37) % 100}%`, "--particle-y": `${(index * 61) % 100}%`, "--particle-delay": `${(index % 9) * 0.22}s`, "--particle-size": `${index % 3 === 0 ? 3 : 2}px` } as React.CSSProperties} />)}</div><div className="earth-scene"><div className="earth-glow" /><div className="earth"><img src="/manus-storage/jooexe-realistic-earth_7aefbeda.png" alt="" /><div className="earth-shine" /></div><div className="earth-orbit" /><div className="earth-orbit earth-orbit-secondary" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
+      {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="particle-layer">{Array.from({ length: lowPowerMode ? 12 : 28 }, (_, index) => <i key={index} style={{ "--particle-x": `${(index * 37) % 100}%`, "--particle-y": `${(index * 61) % 100}%`, "--particle-delay": `${(index % 9) * 0.22}s`, "--particle-size": `${index % 3 === 0 ? 3 : 2}px` } as React.CSSProperties} />)}</div><div className="earth-scene"><div className="earth-glow" /><div className="earth"><WebGLEarth lowPowerMode={lowPowerMode} /><div className="earth-shine" /></div><div className="earth-orbit" /><div className="earth-orbit earth-orbit-secondary" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
       {cosmicComplete && !introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <header className={`topbar ${navHidden ? "nav-hidden" : ""}`}>
