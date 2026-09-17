@@ -271,3 +271,8 @@ h1 em { color: var(--cyan); font-style: normal; }
 @keyframes stars-drift { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(-22px,18px,0) scale(1.04); } }
 @keyframes cosmic-exit { to { opacity:0; visibility:hidden; transform:scale(1.04); } }
 @media (prefers-reduced-motion: reduce) { .cosmic-loader { animation:none; opacity:0; visibility:hidden; } .star-field, .earth-scene, .earth-glow, .earth-surface, .earth-clouds { animation:none; } }
+
+/* Prevent the page underneath from flashing before the staged preloader finishes */
+.site-shell.is-preloading > *:not(.cosmic-loader):not(.intro-loader) { visibility:hidden; }
+.site-shell.is-preloading { background:#02050b; }
+.cosmic-loader, .intro-loader { visibility:visible; }

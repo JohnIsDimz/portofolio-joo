@@ -361,7 +361,7 @@ export default function Home() {
   };
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell ${introComplete ? "is-ready" : "is-preloading"}`}>
       {!cosmicComplete && <div className="cosmic-loader" aria-label="Menyiapkan pengalaman portfolio"><div className="star-field star-field-a" /><div className="star-field star-field-b" /><div className="earth-scene"><div className="earth-glow" /><div className="earth"><div className="earth-surface" /><div className="earth-clouds" /><div className="earth-shine" /></div><div className="earth-orbit" /></div><div className="cosmic-caption"><span>JOOEXE / ORBITAL SYSTEM</span><strong>INITIALIZING EXPERIENCE</strong></div></div>}
       {cosmicComplete && !introComplete && <div className="intro-loader" aria-label="Memuat portfolio"><div className="intro-loader-mark">J<span>×</span>E</div><div className="intro-loader-meta"><span>JOOEXE / PORTFOLIO</span><span>LOADING EXPERIENCE</span></div><div className="intro-loader-track"><span /></div></div>}
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
