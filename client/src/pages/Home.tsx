@@ -216,6 +216,57 @@ export default function Home() {
   const [weather, setWeather] = useState<WeatherData>({ temperature: null, code: null });
   const [weatherSync, setWeatherSync] = useState("syncing weather");
 
+  useEffect(() => {
+    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+    const audio = new AudioCtor();
+    const startedAt = performance.now();
+    let played = false;
+    const playGatheringSound = () => {
+      if (played) return;
+      played = true;
+      const start = () => {
+        const now = audio.currentTime;
+        const hum = audio.createOscillator();
+        const humGain = audio.createGain();
+        hum.type = "sine";
+        hum.frequency.setValueAtTime(lowPowerMode ? 92 : 110, now);
+        hum.frequency.exponentialRampToValueAtTime(lowPowerMode ? 176 : 220, now + 1.15);
+        humGain.gain.setValueAtTime(0.0001, now);
+        humGain.gain.exponentialRampToValueAtTime(0.045, now + 0.42);
+        humGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+        hum.connect(humGain).connect(audio.destination);
+        hum.start(now);
+        hum.stop(now + 1.55);
+        const chime = audio.createOscillator();
+        const chimeGain = audio.createGain();
+        chime.type = "triangle";
+        chime.frequency.setValueAtTime(440, now + 1.06);
+        chime.frequency.exponentialRampToValueAtTime(880, now + 1.5);
+        chimeGain.gain.setValueAtTime(0.0001, now + 1.06);
+        chimeGain.gain.exponentialRampToValueAtTime(0.065, now + 1.13);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.82);
+        chime.connect(chimeGain).connect(audio.destination);
+        chime.start(now + 1.06);
+        chime.stop(now + 1.9);
+      };
+      if (audio.state === "suspended") void audio.resume().then(start); else start();
+    };
+    const unlockAndSchedule = () => {
+      if (audio.state === "suspended") void audio.resume();
+      const remaining = Math.max(0, 1450 - (performance.now() - startedAt));
+      window.setTimeout(playGatheringSound, remaining);
+    };
+    unlockAndSchedule();
+    window.addEventListener("pointerdown", unlockAndSchedule, { once: true, passive: true });
+    window.addEventListener("keydown", unlockAndSchedule, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlockAndSchedule);
+      window.removeEventListener("keydown", unlockAndSchedule);
+      void audio.close();
+    };
+  }, [lowPowerMode]);
+
   const syncGithub = async (signal?: AbortSignal) => {
     try {
       const [profileResponse, reposResponse] = await Promise.all([
