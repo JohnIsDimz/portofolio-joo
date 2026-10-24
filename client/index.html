@@ -8,13 +8,14 @@
     <title>Jooexe — Frontend Developer</title>
     <style>
       html, body { margin: 0; min-height: 100%; background: #070b0f; }
-      #boot-fallback { min-height: 100vh; display: grid; place-items: center; color: #8fe8e5; background: radial-gradient(circle at 50% 45%, #10263a 0%, #070b0f 62%); font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2em; }
+      #boot-fallback { position: fixed; inset: 0; z-index: 9999; min-height: 100vh; display: grid; place-items: center; color: #8fe8e5; background: radial-gradient(circle at 50% 45%, #10263a 0%, #070b0f 62%); font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2em; }
       #boot-fallback span { opacity: .82; animation: boot-pulse 1.4s ease-in-out infinite alternate; }
       @keyframes boot-pulse { to { opacity: .3; } }
     </style>
   </head>
   <body>
     <div id="root"><div id="boot-fallback" role="status" aria-label="Memuat portfolio"><span>JOOEXE / INITIALIZING</span></div></div>
+    <noscript><div style="padding:2rem;color:#8fe8e5;background:#070b0f;font:14px ui-monospace,monospace">JOOEXE portfolio membutuhkan JavaScript untuk menampilkan pengalaman interaktif.</div></noscript>
     <script type="module" src="/src/main.tsx"></script>
     <script defer src="%VITE_ANALYTICS_ENDPOINT%/umami" data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
